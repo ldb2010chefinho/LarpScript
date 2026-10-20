@@ -1,0 +1,17 @@
+// No --hardcore, cada trecho precisa avisar qual personagem está em cena
+larp as python:
+def dobro(x):
+    return x * 2
+print(dobro(21))
+
+larp as javascript
+const nomes = ["Ana", "Bia"]
+console.log(`Oi, ${nomes[0]}!`)
+
+larp as ruby
+3.times do |i|
+  puts "volta #{i}"
+end
+
+larp as java
+System.out.println("Fim do LARP, " + nomes.length + " atores em cena");

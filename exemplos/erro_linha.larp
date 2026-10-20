@@ -1,0 +1,9 @@
+console.log("linha 1 ok")
+let a = 10
+
+/* comentário
+   de várias linhas */
+function falha() {
+    console.log(variavelQueNaoExiste)
+}
+falha()

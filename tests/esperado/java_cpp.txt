@@ -1,0 +1,6 @@
+Oi, Lucca 7
+i=0
+i=1
+i=2
+erro pego: division by zero
+idade? você tem 17 anos

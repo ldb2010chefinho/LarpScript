@@ -1,0 +1,15 @@
+console.log("Começando a festa")
+
+++++++++[>++++[>++>+++>+++>+<<<<-]>+>+>->>+[<]<-]>>.>---.+++++++..+++.>>.<-.<.+++.------.--------.>>+.>++.
+
+function dobro(x) {
+    return x * 2;
+}
+print(dobro(21))
+
+<style>
+  body { background: #111; font-family: sans-serif; }
+  #titulo { color: #7CFC00; text-align: center; }
+</style>
+<h1 id="titulo">LARP Script também larpa de HTML e CSS 🎭</h1>
+<p style="color: white; text-align: center;">Feito com Python, JavaScript e Brainfuck!</p>

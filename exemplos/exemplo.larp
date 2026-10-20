@@ -1,0 +1,52 @@
+// Hello em vários personagens
+console.log("Oi do JavaScript!");
+puts "Oi do Ruby!"
+echo "Oi do PHP";
+System.out.println("Oi do Java!");
+escreva("Oi em português!")
+
+# Python no meio da festa
+def fib(n):
+    a, b = 0, 1
+    for i in range(n):
+        print(a)
+        a, b = b, a + b
+
+fib(6)
+
+function dobro(x) {
+    return x * 2;
+}
+const soma = (a, b) => a + b;
+let total = soma(dobro(3), 4);
+console.log(`Total: ${total}`);
+
+// FizzBuzz misturando estilos
+for (let i = 1; i <= 15; i++) {
+    if (i % 15 == 0) {
+        puts "FizzBuzz"
+    } else if (i % 3 == 0) {
+        puts "Fizz"
+    } else if (i % 5 == 0) {
+        puts "Buzz"
+    } else {
+        puts i
+    }
+}
+
+class Gato {
+    constructor(nome) {
+        this.nome = nome;
+    }
+    falar() {
+        console.log(this.nome + " diz miau");
+    }
+}
+const gato = new Gato("Mingau");
+gato.falar();
+
+try {
+    let x = 1 / 0;
+} catch (e) {
+    console.log("Deu ruim: " + str(e));
+}

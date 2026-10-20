@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<!--
+  LarpStudios 🎭 — a IDE da LARP Script no navegador. Feito por ldb e rezenha.
+  ⚠️ O index.html da raiz é GERADO a partir deste arquivo. Edite studio/modelo.html e rode:
+       py studio\montar.py
+-->
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LarpStudios</title>
+<meta name="description" content="LarpStudios: escreva e rode LARP Script no navegador. Feito por ldb e rezenha.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎭</text></svg>">
+<style>
+  :root {
+    --fundo: #1e1e1e; --lateral: #252526; --atividade: #333333; --topo: #181818;
+    --aba: #2d2d2d; --borda: #3c3c3c; --texto: #cccccc; --apagado: #a8a8a8;
+    --forte: #ffffff; --hover: #ffffff1a; --selecionado: #37373d; --campo: #2a2a2a;
+    --destaque: #ffd700; --roxo: #7c3aed; --verde: #4ec9b0; --vermelho: #f48771;
+    --painel: 38%;
+    --ui: "Segoe UI", system-ui, -apple-system, sans-serif;
+    --mono: "Cascadia Code", Consolas, "Courier New", monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--fundo); color: var(--texto);
+               font: 13px var(--ui); overflow: hidden; }
+  button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+  button:disabled { opacity: .4; cursor: default; }
+  [hidden] { display: none !important; }
+  :focus-visible { outline: 2px solid var(--destaque); outline-offset: -2px; }
+  .pular { position: absolute; left: 8px; top: -80px; z-index: 20; padding: 8px 14px; background: var(--destaque);
+           color: #000; border-radius: 4px; font-weight: 600; }
+  .pular:focus { top: 6px; }
+
+  /* ---------- temas: claro e alto contraste (acessibilidade) ---------- */
+  :root[data-tema="claro"] { --fundo: #ffffff; --lateral: #f3f3f3; --atividade: #2c2c2c; --topo: #e5e5e5;
+    --aba: #ececec; --borda: #c8c8c8; --texto: #1f1f1f; --apagado: #555555; --destaque: #8a5a00;
+    --verde: #0b6b4b; --vermelho: #b42318; --forte: #000000; --hover: #0000000f; --selecionado: #d6e4f5;
+    --campo: #f7f7f7; }
+  :root[data-tema="contraste"] { --fundo: #000; --lateral: #000; --atividade: #000; --topo: #000; --aba: #000;
+    --borda: #ffffff; --texto: #ffffff; --apagado: #e6e6e6; --destaque: #ffff00; --roxo: #000; --verde: #8dff8d;
+    --vermelho: #ff9a9a; --forte: #ffffff; --hover: #ffffff26; --selecionado: #333333; --campo: #000; }
+  :root[data-tema="contraste"] #status { border-top: 1px solid #fff; }
+  :root[data-tema="contraste"] .aba.ativo, :root[data-tema="contraste"] #lateral li.ativo { outline: 1px dashed #ffff00; }
+
+  /* ---------- boas-vindas, erro clicável, aura ---------- */
+  .boas-vindas { position: absolute; right: 18px; top: 46px; z-index: 6; max-width: 340px; background: var(--lateral);
+                 color: var(--texto); border: 1px solid var(--destaque); border-radius: 8px; padding: 14px 16px;
+                 box-shadow: 0 10px 30px #0009; line-height: 1.5; }
+  .boas-vindas h2 { margin: 0 0 4px; font-size: 15px; color: var(--destaque); }
+  .boas-vindas ol { margin: 6px 0 12px; padding-left: 20px; }
+  .boas-vindas kbd, .config kbd { font-family: var(--mono); background: var(--hover); padding: 0 4px; border-radius: 3px; }
+  .botao-forte { background: var(--destaque); color: #000; padding: 6px 14px; border-radius: 4px; font-weight: 600; }
+  :root[data-tema="claro"] .botao-forte { color: #fff; }
+  #saida .ir-linha { color: var(--destaque); text-decoration: underline; padding: 0; font: inherit; }
+  body.brainrot #status { background: linear-gradient(90deg, #6d28d9, #be185d, #b45309); }
+  .config { padding: 0 14px 14px; line-height: 1.5; }
+  .config fieldset { border: 1px solid var(--borda); border-radius: 6px; margin: 0 0 12px; padding: 8px 10px; }
+  .config legend { padding: 0 4px; font-weight: 600; color: var(--destaque); }
+  .config label { display: flex; align-items: center; gap: 8px; padding: 3px 0; cursor: pointer; }
+  .config .linha-botoes { display: flex; align-items: center; gap: 6px; }
+  .config .linha-botoes button { border: 1px solid var(--borda); border-radius: 4px; padding: 3px 10px; min-width: 34px; }
+  .config p { margin: 6px 0; color: var(--apagado); }
+  .config > button { border: 1px solid var(--borda); border-radius: 4px; padding: 5px 10px; width: 100%; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+  #app { height: 100%; display: grid; grid-template-columns: 48px 230px minmax(0, 1fr);
+         grid-template-rows: 40px minmax(0, 1fr) 24px;
+         grid-template-areas: "topo topo topo" "ativ lat centro" "status status status"; }
+  body.sem-lateral #app { grid-template-columns: 48px 0 minmax(0, 1fr); }
+
+  /* ---------- barra de cima ---------- */
+  #topo { grid-area: topo; display: flex; align-items: center; gap: 6px; padding: 0 10px;
+          background: var(--topo); border-bottom: 1px solid var(--borda); }
+  .marca { font-size: 15px; margin-right: 10px; white-space: nowrap; }
+  .marca b { color: var(--destaque); }
+  #topo button { padding: 5px 10px; border-radius: 4px; white-space: nowrap; }
+  #topo button:hover:not(:disabled) { background: var(--hover); }
+  #bt-rodar { background: #16825d; color: #fff; font-weight: 600; }
+  #bt-rodar:hover:not(:disabled) { background: #1a9d70 !important; }
+  .chave { display: flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 4px;
+           cursor: pointer; user-select: none; white-space: nowrap; }
+  .chave:hover { background: var(--hover); }
+  .espaco { flex: 1; }
+  .credito { color: var(--apagado); font-size: 12px; white-space: nowrap; }
+  .credito b { color: var(--texto); }
+
+  /* ---------- barra de atividades e lateral ---------- */
+  #atividade { grid-area: ativ; background: var(--atividade); display: flex; flex-direction: column; }
+  #atividade button { height: 48px; font-size: 22px; opacity: .55; border-left: 2px solid transparent; }
+  #atividade button.ativo { opacity: 1; border-left-color: var(--destaque); }
+  #lateral { grid-area: lat; background: var(--lateral); overflow: auto; border-right: 1px solid var(--borda); }
+  .titulo-lateral { padding: 10px 14px; font-size: 11px; letter-spacing: .5px; color: var(--apagado); }
+  .grupo { display: flex; align-items: center; justify-content: space-between; padding: 4px 8px 4px 14px;
+           font-size: 11px; font-weight: 700; letter-spacing: .3px; }
+  .grupo button { font-size: 15px; padding: 0 6px; border-radius: 3px; }
+  .grupo button:hover { background: var(--hover); }
+  #lateral ul { list-style: none; margin: 0 0 10px; padding: 0; }
+  #lateral li { display: flex; align-items: center; gap: 6px; padding: 1px 8px 1px 22px; }
+  #lateral li:hover { background: var(--hover); }
+  #lateral li.ativo { background: var(--selecionado); }
+  #lateral li .nome { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #lateral li .x { visibility: hidden; padding: 3px 7px; color: var(--apagado); border-radius: 3px; }
+  #lateral li:hover .x, #lateral li:focus-within .x { visibility: visible; }
+  #lateral li .abrir { flex: 1; display: flex; align-items: center; gap: 6px; min-width: 0; padding: 3px 0; text-align: left; }
+  .editado { color: var(--destaque); font-size: 10px; }
+  .ajuda { padding: 0 14px 14px; line-height: 1.55; }
+  .ajuda h3 { font-size: 12px; margin: 14px 0 4px; color: var(--destaque); }
+  .ajuda code, .ajuda kbd { font-family: var(--mono); background: var(--hover); padding: 0 4px; border-radius: 3px; }
+  .ajuda p { margin: 4px 0; }
+  .ling { display: block; width: 100%; text-align: left; margin: 4px 0; padding: 5px 8px;
+          border: 1px solid var(--borda); border-radius: 4px; }
+  .ling:hover { background: var(--hover); border-color: var(--destaque); }
+  .ling b { display: block; }
+  .ling code { display: block; white-space: pre; overflow: hidden; text-overflow: ellipsis; color: var(--apagado);
+               background: none !important; padding: 0 !important; font-size: 12px; }
+  .ling small { color: var(--apagado); }
+  .lista-brainrot { margin: 4px 0; padding-left: 18px; }
+  .lista-brainrot li { margin: 3px 0; }
+
+  /* ---------- centro: abas, editor, painel ---------- */
+  #centro { grid-area: centro; display: flex; flex-direction: column; min-width: 0; position: relative; }
+  #abas { display: flex; background: var(--lateral); height: 35px; flex: none; overflow-x: auto; }
+  .aba { display: flex; align-items: center; gap: 6px; padding: 0 10px 0 14px; background: var(--aba);
+         border-right: 1px solid var(--fundo); color: var(--apagado); cursor: pointer; white-space: nowrap;
+         border-top: 1px solid transparent; }
+  .aba.ativo { background: var(--fundo); color: var(--forte); border-top-color: var(--destaque); }
+  .aba .x { padding: 3px 7px; border-radius: 3px; }
+  .aba .x:hover { background: var(--hover); }
+  #bt-restaurar { margin-left: auto; padding: 0 12px; color: var(--apagado); white-space: nowrap; }
+  #bt-restaurar:hover { color: var(--forte); }
+  #editor { flex: 1; min-height: 0; position: relative; }
+  #editor textarea, #python pre { width: 100%; height: 100%; margin: 0; padding: 10px 14px; resize: none;
+         border: 0; outline: 0; background: var(--fundo); color: var(--texto); font: var(--tam, 14px)/1.5 var(--mono);
+         tab-size: 4; white-space: pre; overflow: auto; }
+  #divisor { height: 5px; flex: none; cursor: row-resize; background: var(--borda); }
+  #divisor:hover, #divisor.arrastando { background: var(--roxo); }
+  #painel { height: var(--painel); flex: none; display: flex; min-height: 80px; overflow: hidden; }
+  #painel-saida-area { flex: 1; display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+  .abas-painel { display: flex; align-items: center; gap: 2px; padding: 0 8px; height: 34px; flex: none; }
+  .abas-painel button { padding: 6px 10px; font-size: 11px; letter-spacing: .5px; color: var(--apagado);
+                        border-bottom: 1px solid transparent; position: relative; }
+  .abas-painel button.ativo { color: var(--forte); border-bottom-color: var(--destaque); }
+  .abas-painel button.novidade::after { content: ""; position: absolute; top: 5px; right: 2px; width: 6px;
+                        height: 6px; border-radius: 50%; background: var(--destaque); }
+  .conteudo-painel { flex: 1; min-height: 0; position: relative; }
+  #saida { margin: 0; height: 100%; overflow: auto; padding: 8px 14px; font: var(--tam-saida, 13px)/1.45 var(--mono);
+           white-space: pre-wrap; word-break: break-word; }
+  #saida .err { color: var(--vermelho); }
+  #saida .eco { color: var(--verde); }
+  #saida .aviso { color: var(--apagado); font-style: italic; }
+  #pagina { width: 100%; height: 100%; border: 0; background: #fff; }
+  #python { height: 100%; }
+  #painel-entrada { width: 260px; flex: none; display: flex; flex-direction: column; border-left: 1px solid var(--borda); }
+  #painel-entrada label { padding: 9px 10px 6px; font-size: 11px; letter-spacing: .5px; }
+  #painel-entrada small { color: var(--apagado); letter-spacing: 0; }
+  #entrada { flex: 1; resize: none; border: 0; outline: 0; margin: 0 8px 8px; padding: 6px 8px;
+             background: var(--campo); color: var(--verde); font: var(--tam-saida, 13px)/1.45 var(--mono); border-radius: 3px;
+             border: 1px solid var(--borda); }
+  #entrada:focus { box-shadow: 0 0 0 1px var(--roxo); }
+
+  /* ---------- barra de status ---------- */
+  #status { grid-area: status; display: flex; align-items: center; gap: 16px; padding: 0 10px;
+            background: var(--roxo); color: #fff; font-size: 12px; white-space: nowrap; overflow: hidden; }
+  #status > span { flex: none; }
+  #status > .espaco { flex: 1; }
+
+  /* ---------- celular ---------- */
+  @media (max-width: 760px) {
+    #app { grid-template-columns: 44px 0 minmax(0, 1fr); }
+    body.com-lateral #app { grid-template-columns: 44px 200px minmax(0, 1fr); }
+    .credito, .rotulo, #st-cursor, #st-tempo, .marca span { display: none; }
+    #topo { gap: 2px; padding: 0 6px; }
+    #painel { flex-direction: column; }
+    #painel-entrada { width: auto; height: 90px; border-left: 0; border-top: 1px solid var(--borda); }
+    #status { gap: 10px; }
+  }
+</style>
+</head>
+<body>
+<a class="pular" href="#editor" id="pular">Pular para o editor</a>
+<div id="app">
+  <header id="topo">
+    <div class="marca">🎭 <span><b>Larp</b>Studios</span></div>
+    <button id="bt-rodar" title="Rodar (Ctrl+Enter)">▶ <span class="rotulo">Rodar</span></button>
+    <button id="bt-parar" title="Parar o programa (ex.: loop infinito)" disabled>■ <span class="rotulo">Parar</span></button>
+    <label class="chave" title="Personagens meme: Tung Tung Tung Sahur, Tralalero, Ballerina..."><input type="checkbox" id="op-brainrot"> 🪵 <span class="rotulo">Brainrot</span></label>
+    <label class="chave" title="Só aceita código bem no personagem (larp as python:)"><input type="checkbox" id="op-hardcore"> 💀 <span class="rotulo">Hardcore</span></label>
+    <span class="espaco"></span>
+    <button id="bt-abrir" title="Abrir um .larp do computador" aria-label="Abrir um arquivo .larp do computador">📂</button>
+    <button id="bt-baixar" title="Baixar este arquivo" aria-label="Baixar este arquivo">⬇</button>
+    <span class="credito">Feito por <b>ldb</b> e <b>rezenha</b></span>
+  </header>
+
+  <nav id="atividade" aria-label="Painéis laterais">
+    <button data-vista="arquivos" class="ativo" title="Explorador" aria-label="Explorador de arquivos">📁</button>
+    <button data-vista="config" title="Aparência e acessibilidade" aria-label="Aparência e acessibilidade">⚙️</button>
+    <button data-vista="ajuda" title="Ajuda" aria-label="Ajuda">❔</button>
+  </nav>
+
+  <aside id="lateral">
+    <section data-vista="arquivos">
+      <div class="titulo-lateral">EXPLORADOR</div>
+      <div class="grupo"><span>MEUS ARQUIVOS</span><button id="bt-novo" title="Novo arquivo" aria-label="Criar arquivo novo">＋</button></div>
+      <ul id="lista-meus"></ul>
+      <div class="grupo"><span>EXEMPLOS</span></div>
+      <ul id="lista-exemplos"></ul>
+    </section>
+    <section data-vista="config" hidden>
+      <div class="titulo-lateral">APARÊNCIA E ACESSIBILIDADE</div>
+      <div class="config">
+        <fieldset>
+          <legend>Tema</legend>
+          <label><input type="radio" name="tema" value="escuro"> 🌙 Escuro</label>
+          <label><input type="radio" name="tema" value="claro"> ☀️ Claro</label>
+          <label><input type="radio" name="tema" value="contraste"> ◐ Alto contraste</label>
+        </fieldset>
+        <fieldset>
+          <legend>Tamanho da letra</legend>
+          <div class="linha-botoes">
+            <button id="fonte-menos" aria-label="Diminuir a letra">A−</button>
+            <span id="fonte-valor" aria-live="polite">14 px</span>
+            <button id="fonte-mais" aria-label="Aumentar a letra">A+</button>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>Leitor de tela</legend>
+          <label><input type="checkbox" id="op-leitor"> Otimizar o editor para leitor de tela</label>
+          <p>No editor, <kbd>Tab</kbd> coloca espaços. Para o <kbd>Tab</kbd> sair do editor, aperte
+             <kbd>Ctrl+M</kbd> antes. <kbd>Alt+F1</kbd> abre a ajuda de acessibilidade do editor.</p>
+        </fieldset>
+        <button id="bt-dicas">💡 Mostrar as dicas de boas-vindas</button>
+      </div>
+    </section>
+    <section data-vista="ajuda" hidden>
+      <div class="titulo-lateral">AJUDA</div>
+      <div class="ajuda">
+        <h3>Atalhos</h3>
+        <p><kbd>Ctrl+Enter</kbd> roda o programa</p>
+        <p><kbd>F1</kbd> abre a lista de comandos do editor</p>
+        <p><kbd>Ctrl+M</kbd> faz o <kbd>Tab</kbd> sair do editor (teclado)</p>
+        <p><kbd>Ctrl+Espaço</kbd> sugestões e snippets: <code>oi</code> <code>fn</code> <code>for</code> <code>switch</code> <code>times</code> <code>pagina</code> <code>bfoi</code> <code>larp</code></p>
+        <p>Tudo é salvo sozinho neste navegador.</p>
+        <h3>Linguagens que a LARP finge ser</h3>
+        <p>Clique numa delas para colocar o exemplo no editor. Pode misturar à vontade!</p>
+        <div id="lista-linguagens"></div>
+        <h3>Elenco brainrot (ligue 🪵 Brainrot)</h3>
+        <ul id="lista-brainrot" class="lista-brainrot"></ul>
+        <h3>Painel de baixo</h3>
+        <p><b>SAÍDA</b>: o que o programa imprimiu (console.log, puts, print...).</p>
+        <p><b>PÁGINA</b>: se o .larp tiver HTML/CSS, a página aparece aqui. Ela abre sozinha quando existe.</p>
+        <p><b>PYTHON</b>: o código Python que a LARP gerou a partir do seu.</p>
+        <p>Deu erro? Clique no <b>📍 linha N</b> da SAÍDA e o editor pula até ela (a linha fica sublinhada em vermelho).</p>
+        <p><b>ENTRADA</b>: respostas para <code>input()</code> / <code>prompt()</code>, uma por linha, escritas antes de rodar.</p>
+        <h3>Como funciona</h3>
+        <p>Cada linha do seu .larp é traduzida para Python, e esse Python roda aqui mesmo no navegador (com o Pyodide). Nada vai para servidor nenhum.</p>
+        <h3>Créditos</h3>
+        <p>LarpStudios e LARP Script, feitos por <b>ldb</b> e <b>rezenha</b>. Licença MIT.</p>
+      </div>
+    </section>
+  </aside>
+
+  <main id="centro">
+    <div id="abas" aria-label="Arquivos abertos"></div>
+    <div class="boas-vindas" id="boas-vindas" role="dialog" aria-labelledby="bv-titulo" hidden>
+      <h2 id="bv-titulo">🎭 Bem-vindo ao LarpStudios!</h2>
+      Aqui você escreve em qualquer linguagem (até misturando) e roda na hora.
+      <ol>
+        <li>Escreva ou abra um exemplo no 📁 Explorador.</li>
+        <li>Aperte <b>▶ Rodar</b> ou <kbd>Ctrl+Enter</kbd>.</li>
+        <li>Veja o resultado embaixo: <b>SAÍDA</b>, <b>PÁGINA</b> (se tiver HTML) e <b>PYTHON</b>.</li>
+      </ol>
+      Deu erro? Clique no <b>📍</b> e o editor mostra a linha. Tema e letra maior ficam em ⚙️.
+      <div style="margin-top:12px"><button class="botao-forte" id="bv-ok">Bora! 🚀</button></div>
+    </div>
+    <div id="editor"></div>
+    <div id="divisor" title="Arraste para mudar o tamanho"></div>
+    <section id="painel">
+      <div id="painel-saida-area">
+        <div class="abas-painel" role="tablist" aria-label="Resultado do programa">
+          <button data-aba="saida" class="ativo" role="tab" aria-selected="true" aria-controls="saida" id="aba-saida">SAÍDA</button>
+          <button data-aba="pagina" role="tab" aria-selected="false" aria-controls="pagina" id="aba-pagina">PÁGINA</button>
+          <button data-aba="python" role="tab" aria-selected="false" aria-controls="python" id="aba-python">PYTHON</button>
+          <span class="espaco"></span>
+          <button id="bt-limpar" title="Limpar a saída" aria-label="Limpar a saída">🧹</button>
+        </div>
+        <div class="conteudo-painel">
+          <pre id="saida" data-aba="saida" role="log" aria-labelledby="aba-saida" tabindex="0"></pre>
+          <iframe id="pagina" data-aba="pagina" title="Página gerada pelo .larp" sandbox="allow-scripts allow-modals" hidden></iframe>
+          <div id="python" data-aba="python" role="tabpanel" aria-labelledby="aba-python" hidden></div>
+        </div>
+      </div>
+      <div id="painel-entrada">
+        <label for="entrada">ENTRADA <small>— uma resposta por linha</small></label>
+        <textarea id="entrada" spellcheck="false" placeholder="respostas para input() / prompt()"></textarea>
+      </div>
+    </section>
+  </main>
+
+  <footer id="status">
+    <span id="st-python" role="status" aria-live="polite">⏳ Carregando o Python…</span>
+    <span id="st-tempo"></span>
+    <span id="aura" hidden title="Aura do brainrot: +67 por programa certo, -1000 por erro"></span>
+    <span class="espaco"></span>
+    <span id="st-personagem" title="Que linguagem esta linha parece"></span>
+    <span id="st-cursor">Ln 1, Col 1</span>
+    <span>🎭 LARP Script</span>
+  </footer>
+</div>
+<input type="file" id="arquivo" accept=".larp,.txt" hidden>
+
+<!-- O Python roda num "Web Worker": um ajudante em segundo plano. Assim a página não trava
+     com um loop infinito, e o botão Parar pode simplesmente desligar o ajudante. -->
+<script type="text/plain" id="codigo-worker">
+importScripts("https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js");
+let py = null, entradas = [];
+
+function saida(tipo) {
+  const dec = new TextDecoder();
+  return { isatty: true, write(b) { postMessage({ tipo, s: dec.decode(b, { stream: true }) }); return b.length; } };
+}
+
+self.onmessage = async (ev) => {
+  const m = ev.data;
+  if (m.tipo === "iniciar") {
+    try {
+      py = await loadPyodide();
+      py.setStdout(saida("out"));
+      py.setStderr(saida("err"));
+      py.setStdin({ stdin() {
+        if (!entradas.length) { postMessage({ tipo: "faltou" }); return null; }
+        const linha = entradas.shift();
+        postMessage({ tipo: "eco", s: linha });
+        return linha + "\n";
+      } });
+      for (const [nome, codigo] of Object.entries(m.arquivos)) py.FS.writeFile(nome, codigo);
+      py.runPython("import sys, os; sys.path.insert(0, os.getcwd()); import ponte");
+      postMessage({ tipo: "pronto" });
+    } catch (e) {
+      postMessage({ tipo: "falhou", s: String(e) });
+    }
+  } else if (m.tipo === "personagem") {
+    try { postMessage({ tipo: "personagem", nome: py.pyimport("ponte").personagem(m.linha) }); } catch (e) {}
+  } else if (m.tipo === "rodar") {
+    const txt = m.entrada.replace(/\r/g, "").replace(/\n+$/, "");
+    entradas = txt ? txt.split("\n") : [];
+    try {
+      const ponte = py.pyimport("ponte");
+      const r = ponte.traduzir(m.fonte, m.brainrot, m.hardcore);
+      if (r) {
+        const [codigo, html] = r.toJs();
+        r.destroy();
+        postMessage({ tipo: "py", codigo, html });
+        ponte.rodar(codigo, m.fonte, m.brainrot);
+      }
+    } catch (e) {
+      postMessage({ tipo: "err", s: "💥 " + e + "\n" });
+    }
+    postMessage({ tipo: "fim" });
+  }
+};
+</script>
+
+<script>const DADOS = /*__DADOS__*/null;</script>
+<script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/min/vs/loader.js"></script>
+<script>
+"use strict";
+const $ = (s) => document.querySelector(s);
+const $$ = (s) => [...document.querySelectorAll(s)];
+const CHAVE = "larpstudios:v1";
+const TEMAS_MONACO = { escuro: "larp-escuro", claro: "larp-claro", contraste: "hc-black" };
+const BOAS_VINDAS = `// Bem-vindo ao LarpStudios! 🎭
+// Aperte Ctrl+Enter (ou ▶ Rodar) para executar.
+// Misture as linguagens que quiser no mesmo arquivo:
+
+console.log("Oi do JavaScript!");
+puts "Oi do Ruby!"
+System.out.println("Oi do Java!");
+
+def dobro(x):
+    return x * 2
+
+for (let i = 1; i <= 3; i++) {
+    escreva("dobro de " + i + " = " + dobro(i))
+}
+
+// prompt() lê a caixa ENTRADA, ali do lado →
+let nome = prompt("Qual é o seu nome? ")
+console.log(\`Prazer, \${nome}!\`)
+
+// Quer uma página? Abra o exemplo misturado.larp ou digite "pagina" + Ctrl+Espaço
+`;
+
+// ---------------- estado (salvo no navegador) ----------------
+function estadoInicial() {
+  return { meus: { "meu.larp": BOAS_VINDAS }, editados: {},
+           entradas: { "meus/meu.larp": "ldb", "exemplos/java_cpp.larp": "17" },
+           abas: ["meus/meu.larp"], aberto: "meus/meu.larp", brainrot: false, hardcore: false,
+           tema: matchMedia("(prefers-contrast: more)").matches ? "contraste" : "escuro", fonte: 14, leitor: false,
+           aura: 0, viuBoasVindas: false };
+}
+let estado = (() => {
+  try {
+    const s = JSON.parse(localStorage.getItem(CHAVE));
+    if (s && s.meus && Array.isArray(s.abas)) return Object.assign(estadoInicial(), s);
+  } catch (e) { /* sem localStorage: começa do zero */ }
+  return estadoInicial();
+})();
+let timerSalvar = 0;
+function salvar() {
+  clearTimeout(timerSalvar);
+  timerSalvar = setTimeout(() => { try { localStorage.setItem(CHAVE, JSON.stringify(estado)); } catch (e) {} }, 300);
+}
+
+const pasta = (id) => id.split("/")[0];
+const nomeDe = (id) => id.slice(id.indexOf("/") + 1);
+function existe(id) {
+  return pasta(id) === "meus" ? nomeDe(id) in estado.meus : nomeDe(id) in DADOS.exemplos;
+}
+function textoDe(id) {
+  const n = nomeDe(id);
+  if (pasta(id) === "meus") return estado.meus[n] ?? "";
+  return estado.editados[n] ?? DADOS.exemplos[n];
+}
+function guardarTexto(id, t) {
+  const n = nomeDe(id);
+  if (pasta(id) === "meus") estado.meus[n] = t;
+  else if (t === DADOS.exemplos[n]) delete estado.editados[n];
+  else estado.editados[n] = t;
+  salvar();
+  desenharListaDepois();
+}
+
+// ---------------- editor (Monaco = o editor do VS Code; se não carregar, um textarea) ----------------
+let monacoOk = false, editor = null, pyEditor = null;
+const modelos = {};
+const ed = {
+  mostrar(id) {
+    if (monacoOk) {
+      if (!modelos[id]) {
+        const m = monaco.editor.createModel(textoDe(id), "larp");
+        m.onDidChangeContent(() => guardarTexto(id, m.getValue()));
+        modelos[id] = m;
+      }
+      editor.setModel(modelos[id]);
+      editor.updateOptions({ ariaLabel: `Editor de código, arquivo ${nomeDe(id)}. Ctrl+Enter roda.` });
+    } else {
+      editor.value = textoDe(id);
+    }
+  },
+  texto() { return monacoOk ? editor.getValue() : editor.value; },
+  trocarTexto(id, t) { if (monacoOk && modelos[id]) modelos[id].setValue(t); else if (!monacoOk) editor.value = t; },
+  esquecer(id) { if (modelos[id]) { modelos[id].dispose(); delete modelos[id]; } },
+  foco() { editor && editor.focus(); },
+  python(t) { if (pyEditor && pyEditor.setValue) pyEditor.setValue(t); else $("#python pre").textContent = t; },
+};
+
+function iniciarTextarea() {
+  monacoOk = false;
+  const ta = document.createElement("textarea");
+  ta.spellcheck = false;
+  ta.addEventListener("input", () => guardarTexto(estado.aberto, ta.value));
+  ta.addEventListener("keydown", (e) => {
+    if (e.key === "Tab") { e.preventDefault(); ta.setRangeText("    ", ta.selectionStart, ta.selectionEnd, "end"); guardarTexto(estado.aberto, ta.value); }
+  });
+  $("#editor").appendChild(ta);
+  $("#python").innerHTML = "<pre></pre>";
+  editor = ta;
+  comecar();
+}
+
+function registrarLarp() {
+  monaco.languages.register({ id: "larp", extensions: [".larp"] });
+  monaco.languages.setMonarchTokensProvider("larp", {
+    controle: ["if", "elif", "elsif", "elseif", "else", "senao", "se", "enquanto", "while", "for", "foreach",
+      "in", "of", "switch", "case", "default", "match", "break", "continue", "return", "retorne", "try",
+      "catch", "except", "finally", "throw", "raise", "do", "end", "then", "unless", "until", "loop",
+      "begin", "rescue", "ensure", "range", "times", "each"],
+    decl: ["def", "function", "fn", "func", "funcao", "fun", "class", "let", "const", "var", "val", "local",
+      "mut", "public", "private", "protected", "static", "async", "new", "extends", "implements", "this",
+      "self", "constructor", "initialize", "import", "from", "export", "lambda"],
+    tipos: ["int", "string", "String", "double", "float", "bool", "boolean", "long", "char", "void", "auto",
+      "any", "number", "str", "i32", "i64", "u32", "u64", "f32", "f64", "Int", "Double", "Boolean"],
+    consts: ["true", "false", "null", "nil", "undefined", "None", "True", "False", "verdadeiro", "falso", "nulo"],
+    prints: ["puts", "echo", "escreva", "print", "println", "cout", "printf", "prompt", "input"],
+    tokenizer: {
+      root: [
+        [/\b(larp)(\s+)(as)\b/, ["larp", "", "larp"]],
+        [/<style[^>]*>/, "tag", "@css"],
+        [/<\/?[a-zA-Z!][^>]*>/, "tag"],
+        [/[+\-<>\[\].,]{2,}\s*$/, "bf"],
+        [/\/\/.*$/, "comment"],
+        [/#.*$/, "comment"],
+        [/\/\*/, "comment", "@bloco"],
+        [/"""/, "string", "@triplo"],
+        [/"/, "string", "@aspas"],
+        [/'/, "string", "@simples"],
+        [/`/, "string", "@crase"],
+        [/(console\.log|System\.out\.println|System\.out\.print|fmt\.Println|println!)/, "print"],
+        [/\d+(\.\d+)?/, "number"],
+        [/[A-Za-z_$@][\w$]*(?=\s*\()/, { cases: { "@controle": "keyword", "@decl": "decl", "@prints": "print", "@default": "function" } }],
+        [/[A-Za-z_$@][\w$]*/, { cases: { "@controle": "keyword", "@decl": "decl", "@tipos": "type", "@consts": "constant", "@prints": "print", "@default": "identifier" } }],
+        [/=>|->|:=|\+\+|--|[=!<>]=?|&&|\|\||[+\-*\/%]/, "operator"],
+      ],
+      bloco: [[/[^*]+/, "comment"], [/\*\//, "comment", "@pop"], [/\*/, "comment"]],
+      triplo: [[/"""/, "string", "@pop"], [/[^"]+/, "string"], [/"/, "string"]],
+      aspas: [[/#\{[^}]*\}/, "interp"], [/[^\\"#]+/, "string"], [/\\./, "escape"], [/#/, "string"], [/"/, "string", "@pop"]],
+      simples: [[/[^\\']+/, "string"], [/\\./, "escape"], [/'/, "string", "@pop"]],
+      crase: [[/\$\{[^}]*\}/, "interp"], [/[^\\`$]+/, "string"], [/\\./, "escape"], [/\$/, "string"], [/`/, "string", "@pop"]],
+      css: [[/<\/style>/, "tag", "@pop"], [/[\w-]+(?=\s*:)/, "cssprop"], [/#[0-9a-fA-F]{3,8}\b/, "number"],
+            [/[{};:]/, "operator"], [/[^<{};:#]+/, "cssval"], [/./, "cssval"]],
+    },
+  });
+
+  const cfg = DADOS.config;
+  const Indent = monaco.languages.IndentAction.Indent;
+  monaco.languages.setLanguageConfiguration("larp", {
+    comments: cfg.comments, brackets: cfg.brackets, autoClosingPairs: cfg.autoClosingPairs,
+    surroundingPairs: cfg.surroundingPairs.map(([open, close]) => ({ open, close })),
+    onEnterRules: [
+      { beforeText: /:\s*$/, action: { indentAction: Indent } },                 // Python
+      { beforeText: /\b(do(\s*\|[^|]*\|)?|then)\s*$/, action: { indentAction: Indent } }, // Ruby / Lua
+    ],
+  });
+
+  // snippets da extensão do VS Code + palavras de várias linguagens
+  const palavras = ["console.log", "System.out.println", "fmt.Println", "println!", "puts", "echo", "escreva",
+    "function", "def", "class", "constructor", "return", "switch", "default", "foreach", "elsif", "unless",
+    "prompt", "parseInt", "Math.floor", "Math.random", "JSON.stringify", "larp as"];
+  monaco.languages.registerCompletionItemProvider("larp", {
+    provideCompletionItems(model, pos) {
+      const w = model.getWordUntilPosition(pos);
+      const range = { startLineNumber: pos.lineNumber, endLineNumber: pos.lineNumber, startColumn: w.startColumn, endColumn: w.endColumn };
+      const K = monaco.languages.CompletionItemKind;
+      const snippets = Object.entries(DADOS.snippets).map(([nome, s]) => ({
+        label: s.prefix, kind: K.Snippet, detail: nome, documentation: s.description, range,
+        insertText: [].concat(s.body).join("\n"),
+        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+      }));
+      return { suggestions: snippets.concat(palavras.map((p) => ({ label: p, kind: K.Keyword, insertText: p, range }))) };
+    },
+  });
+
+  monaco.editor.defineTheme("larp-claro", {
+    base: "vs", inherit: true,
+    rules: [
+      { token: "keyword", foreground: "AF00DB" }, { token: "decl", foreground: "0000FF" },
+      { token: "type", foreground: "267F99" }, { token: "constant", foreground: "0000FF" },
+      { token: "print", foreground: "795E26", fontStyle: "bold" }, { token: "function", foreground: "795E26" },
+      { token: "identifier", foreground: "001080" }, { token: "string", foreground: "A31515" },
+      { token: "interp", foreground: "8A5A00" }, { token: "escape", foreground: "EE0000" },
+      { token: "number", foreground: "098658" }, { token: "comment", foreground: "008000", fontStyle: "italic" },
+      { token: "bf", foreground: "C2185B", fontStyle: "bold" }, { token: "tag", foreground: "800000" },
+      { token: "larp", foreground: "8A5A00", fontStyle: "bold" }, { token: "operator", foreground: "000000" },
+      { token: "cssprop", foreground: "E50000" }, { token: "cssval", foreground: "0451A5" },
+    ],
+    colors: {},
+  });
+  monaco.editor.defineTheme("larp-escuro", {
+    base: "vs-dark", inherit: true,
+    rules: [
+      { token: "keyword", foreground: "C586C0" }, { token: "decl", foreground: "569CD6" },
+      { token: "type", foreground: "4EC9B0" }, { token: "constant", foreground: "569CD6" },
+      { token: "print", foreground: "DCDCAA", fontStyle: "bold" }, { token: "function", foreground: "DCDCAA" },
+      { token: "identifier", foreground: "9CDCFE" }, { token: "string", foreground: "CE9178" },
+      { token: "interp", foreground: "FFD700" }, { token: "escape", foreground: "D7BA7D" },
+      { token: "number", foreground: "B5CEA8" }, { token: "comment", foreground: "6A9955", fontStyle: "italic" },
+      { token: "bf", foreground: "FF79C6", fontStyle: "bold" }, { token: "tag", foreground: "569CD6" },
+      { token: "larp", foreground: "FFD700", fontStyle: "bold" }, { token: "operator", foreground: "D4D4D4" },
+      { token: "cssprop", foreground: "9CDCFE" }, { token: "cssval", foreground: "CE9178" },
+    ],
+    colors: { "editor.background": "#1e1e1e" },
+  });
+}
+
+function iniciarMonaco() {
+  monacoOk = true;
+  registrarLarp();
+  const comum = { theme: TEMAS_MONACO[estado.tema] || "larp-escuro", automaticLayout: true, fontSize: estado.fonte,
+    tabSize: 4, insertSpaces: true, accessibilitySupport: estado.leitor ? "on" : "auto",
+    fontFamily: "'Cascadia Code', Consolas, 'Courier New', monospace", minimap: { enabled: false },
+    scrollBeyondLastLine: false, renderWhitespace: "selection", padding: { top: 8 } };
+  editor = monaco.editor.create($("#editor"), Object.assign({ model: null }, comum));
+  editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, rodar);
+  editor.onDidChangeCursorPosition((e) => {
+    $("#st-cursor").textContent = `Ln ${e.position.lineNumber}, Col ${e.position.column}`;
+    pedirPersonagem(editor.getModel().getLineContent(e.position.lineNumber));
+  });
+  pyEditor = monaco.editor.create($("#python"), Object.assign({ value: "", language: "python", readOnly: true,
+    lineNumbers: "on", fontSize: 13 }, comum));
+  comecar();
+}
+
+// ---------------- arquivos, abas e lista ----------------
+function abrir(id) {
+  if (!existe(id)) return;
+  if (!estado.abas.includes(id)) estado.abas.push(id);
+  estado.aberto = id;
+  ed.mostrar(id);
+  $("#entrada").value = estado.entradas[id] || "";
+  desenharAbas();
+  desenharLista();
+  salvar();
+  ed.foco();
+}
+
+function fecharAba(id) {
+  estado.abas = estado.abas.filter((a) => a !== id);
+  if (!estado.abas.length) estado.abas = [Object.keys(estado.meus).length ? "meus/" + Object.keys(estado.meus)[0] : "exemplos/exemplo.larp"];
+  if (estado.aberto === id || !estado.abas.includes(estado.aberto)) abrir(estado.abas[estado.abas.length - 1]);
+  else { desenharAbas(); salvar(); }
+}
+
+function nomeValido(n) {
+  n = (n || "").trim().replace(/[\\/]/g, "-");
+  if (!n) return "";
+  return n.endsWith(".larp") ? n : n + ".larp";
+}
+
+// campo de nome dentro da lista, como no VS Code (prompt() não existe em todo navegador)
+function pedirNome() {
+  if ($("#campo-novo")) { $("#campo-novo").focus(); return; }
+  const li = document.createElement("li");
+  li.innerHTML = `<input id="campo-novo" aria-label="Nome do arquivo novo (Enter cria, Esc cancela)"
+    value="novo.larp" spellcheck="false" style="width:100%;font:inherit;padding:3px 6px;
+    background:var(--campo);color:var(--texto);border:1px solid var(--destaque);border-radius:3px">`;
+  $("#lista-meus").prepend(li);
+  const campo = li.querySelector("input");
+  campo.focus();
+  campo.setSelectionRange(0, 4);
+  const fim = (criar) => {
+    const nome = nomeValido(campo.value);
+    if (criar && nome in estado.meus) { campo.style.borderColor = "var(--vermelho)"; status(`⚠️ Já existe ${nome}. Escolha outro nome.`); return; }
+    li.remove();
+    if (criar && nome) novoArquivo(nome);
+  };
+  campo.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") { e.preventDefault(); fim(true); }
+    if (e.key === "Escape") { e.preventDefault(); fim(false); }
+  });
+  campo.addEventListener("blur", () => { if (li.isConnected) fim(true); });
+}
+
+function novoArquivo(nome, texto) {
+  if (nome === undefined) { pedirNome(); return; }
+  nome = nomeValido(nome);
+  if (!nome) return;
+  estado.meus[nome] = texto ?? `// ${nome}\nconsole.log("Oi do ${nome}!")\n`;
+  ed.esquecer("meus/" + nome);
+  abrir("meus/" + nome);
+}
+
+function apagar(nome) {
+  if (!confirm(`Apagar ${nome}? Não dá para desfazer.`)) return;
+  const id = "meus/" + nome;
+  delete estado.meus[nome];
+  delete estado.entradas[id];
+  ed.esquecer(id);
+  fecharAba(id);
+  desenharLista();
+  salvar();
+}
+
+function itemLista(id, rotulo, extra) {
+  const li = document.createElement("li");
+  li.className = id === estado.aberto ? "ativo" : "";
+  li.innerHTML = `<button class="abrir"><span aria-hidden="true">🎭</span><span class="nome"></span></button>`;
+  const b = li.querySelector(".abrir");
+  b.querySelector(".nome").textContent = rotulo;
+  b.title = dicaDe(id);
+  if (id === estado.aberto) b.setAttribute("aria-current", "true");
+  if (extra) li.appendChild(extra);
+  b.addEventListener("click", () => abrir(id));
+  return li;
+}
+
+let pedidoLista = 0;
+function desenharListaDepois() { cancelAnimationFrame(pedidoLista); pedidoLista = requestAnimationFrame(desenharLista); }
+function desenharLista() {
+  const meus = $("#lista-meus"), ex = $("#lista-exemplos");
+  meus.textContent = ""; ex.textContent = "";
+  for (const nome of Object.keys(estado.meus).sort()) {
+    const x = document.createElement("button");
+    x.className = "x"; x.textContent = "🗑"; x.title = "Apagar"; x.setAttribute("aria-label", `Apagar ${nome}`);
+    x.addEventListener("click", (e) => { e.stopPropagation(); apagar(nome); });
+    meus.appendChild(itemLista("meus/" + nome, nome, x));
+  }
+  for (const nome of Object.keys(DADOS.exemplos)) {
+    let marca = null;
+    if (nome in estado.editados) {
+      marca = document.createElement("span");
+      marca.className = "editado"; marca.textContent = "●"; marca.title = "Você mudou este exemplo";
+    }
+    ex.appendChild(itemLista("exemplos/" + nome, nome, marca));
+  }
+  const restaurar = $("#bt-restaurar");
+  if (restaurar) restaurar.hidden = !(pasta(estado.aberto) === "exemplos" && nomeDe(estado.aberto) in estado.editados);
+}
+
+function desenharAbas() {
+  const abas = $("#abas");
+  abas.textContent = "";
+  for (const id of estado.abas) {
+    const d = document.createElement("div");
+    d.className = "aba" + (id === estado.aberto ? " ativo" : "");
+    d.title = id;
+    d.innerHTML = `<span aria-hidden="true">🎭</span><span class="nome"></span><button class="x" title="Fechar">×</button>`;
+    d.querySelector(".nome").textContent = nomeDe(id);
+    d.tabIndex = 0;
+    d.setAttribute("role", "button");
+    d.setAttribute("aria-label", `Aba ${nomeDe(id)}` + (id === estado.aberto ? " (aberta)" : ""));
+    d.querySelector(".x").setAttribute("aria-label", `Fechar ${nomeDe(id)}`);
+    d.addEventListener("keydown", (e) => { if (e.target === d && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); abrir(id); } });
+    d.addEventListener("click", () => abrir(id));
+    d.addEventListener("auxclick", (e) => { if (e.button === 1) fecharAba(id); });
+    d.querySelector(".x").addEventListener("click", (e) => { e.stopPropagation(); fecharAba(id); });
+    abas.appendChild(d);
+  }
+  const r = document.createElement("button");
+  r.id = "bt-restaurar"; r.textContent = "↺ restaurar original"; r.title = "Desfazer suas mudanças neste exemplo";
+  r.addEventListener("click", () => {
+    const n = nomeDe(estado.aberto);
+    if (!confirm(`Voltar ${n} ao original?`)) return;
+    delete estado.editados[n];
+    ed.trocarTexto(estado.aberto, DADOS.exemplos[n]);
+    desenharLista();
+    salvar();
+  });
+  abas.appendChild(r);
+  desenharLista();
+}
+
+// ---------------- painel de baixo ----------------
+function mostrarAba(nome) {
+  for (const b of $$(".abas-painel [data-aba]")) {
+    b.classList.toggle("ativo", b.dataset.aba === nome);
+    b.setAttribute("aria-selected", b.dataset.aba === nome ? "true" : "false");
+    if (b.dataset.aba === nome) b.classList.remove("novidade");
+  }
+  for (const el of $$(".conteudo-painel [data-aba]")) el.hidden = el.dataset.aba !== nome;
+  if (nome === "python" && pyEditor && pyEditor.layout) pyEditor.layout();
+}
+function avisarAba(nome) {
+  const b = $(`.abas-painel [data-aba="${nome}"]`);
+  if (!b.classList.contains("ativo")) b.classList.add("novidade");
+}
+
+const LIMITE = 200000;
+let fila = [], tamanho = 0, cortado = false, pedidoSaida = 0;
+function escrever(classe, s) {
+  if (cortado) return;
+  if (tamanho + s.length > LIMITE) {
+    s = s.slice(0, Math.max(0, LIMITE - tamanho));
+    fila.push([classe, s], ["aviso", "\n✂️ Saída grande demais: parei de mostrar. Se for um loop infinito, aperte ■ Parar.\n"]);
+    cortado = true;
+  } else fila.push([classe, s]);
+  tamanho += s.length;
+  if (!pedidoSaida) pedidoSaida = requestAnimationFrame(despejar);
+}
+function despejar() {
+  pedidoSaida = 0;
+  const pre = $("#saida"), embaixo = pre.scrollHeight - pre.scrollTop - pre.clientHeight < 40;
+  const frag = document.createDocumentFragment();
+  for (const [classe, s] of fila) {
+    const ultimo = frag.lastChild || pre.lastChild;
+    if (ultimo && ultimo.className === classe) ultimo.textContent += s;   // junta pedaços seguidos
+    else { const sp = document.createElement("span"); sp.className = classe; sp.textContent = s; frag.appendChild(sp); }
+  }
+  fila = [];
+  pre.appendChild(frag);
+  if (embaixo) pre.scrollTop = pre.scrollHeight;
+  if (!$('.abas-painel [data-aba="saida"]').classList.contains("ativo")) avisarAba("saida");
+}
+function limparSaida() {
+  fila = []; tamanho = 0; cortado = false;
+  $("#saida").textContent = "";
+}
+
+const PAGINA_VAZIA = `<!DOCTYPE html><meta charset="utf-8"><body style="font:15px system-ui;color:#666;
+  display:grid;place-items:center;height:90vh;margin:0;text-align:center">
+  <div>🌐 Este programa não tem HTML.<br><br>Coloque tags como <code>&lt;h1&gt;Oi&lt;/h1&gt;</code>
+  ou um bloco <code>&lt;style&gt;</code> no seu .larp<br>e a página aparece aqui.</div></body>`;
+
+// ---------------- o Python (Pyodide num Web Worker) ----------------
+let worker = null, pronto = false, rodando = false, pendente = false, inicio = 0, temHtml = false;
+const status = (t) => { $("#st-python").textContent = t; };
+
+function iniciarWorker() {
+  pronto = false;
+  status("⏳ Carregando o Python…");
+  const url = URL.createObjectURL(new Blob([$("#codigo-worker").textContent], { type: "text/javascript" }));
+  worker = new Worker(url);
+  worker.onmessage = aoMensagem;
+  worker.onerror = () => falhou("o navegador não deixou o Python começar");
+  worker.postMessage({ tipo: "iniciar", arquivos: DADOS.arquivos });
+}
+
+function falhou(motivo) {
+  status("❌ Python não carregou");
+  escrever("err", `❌ Não consegui carregar o Python (${motivo}).\n   Confira a internet e recarregue a página.\n`);
+  rodando = pendente = false;
+  botoes();
+}
+
+function aoMensagem(ev) {
+  const m = ev.data;
+  if (m.tipo === "out") escrever("out", m.s);
+  else if (m.tipo === "err") escrever("err", m.s);
+  else if (m.tipo === "eco") escrever("eco", m.s + "\n");
+  else if (m.tipo === "faltou") escrever("aviso", "\n⌨️ O programa pediu uma entrada e a caixa ENTRADA acabou. Escreva as respostas lá (uma por linha) e rode de novo.\n");
+  else if (m.tipo === "py") {
+    ed.python(m.codigo);
+    temHtml = !!m.html;
+    $("#pagina").srcdoc = m.html || PAGINA_VAZIA;
+    if (temHtml) avisarAba("pagina");
+  } else if (m.tipo === "fim") terminou();
+  else if (m.tipo === "pronto") {
+    pronto = true;
+    status("● Python pronto");
+    if (pendente) { pendente = false; enviar(); }
+  } else if (m.tipo === "falhou") falhou(m.s);
+  else if (m.tipo === "personagem") $("#st-personagem").textContent = "🎭 " + (m.nome || "neutro");
+}
+
+let timerPersonagem = 0;
+function pedirPersonagem(linha) {
+  clearTimeout(timerPersonagem);
+  timerPersonagem = setTimeout(() => {
+    if (pronto && !rodando) worker.postMessage({ tipo: "personagem", linha });
+  }, 250);
+}
+
+function botoes() {
+  $("#bt-rodar").disabled = rodando;
+  $("#bt-parar").disabled = !rodando && !pendente;
+}
+
+function rodar() {
+  if (rodando) return;
+  estado.entradas[estado.aberto] = $("#entrada").value;
+  salvar();
+  limparSaida();
+  if (monacoOk && editor.getModel()) monaco.editor.setModelMarkers(editor.getModel(), "larp", []);
+  temHtml = false;
+  for (const b of $$(".abas-painel button")) b.classList.remove("novidade");
+  mostrarAba("saida");
+  if (!pronto) {
+    pendente = true;
+    escrever("aviso", "⏳ Esperando o Python carregar (na primeira vez demora uns segundos)…\n");
+    botoes();
+    return;
+  }
+  enviar();
+}
+
+function enviar() {
+  rodando = true;
+  botoes();
+  status("▶ Rodando…");
+  $("#st-tempo").textContent = "";
+  inicio = performance.now();
+  worker.postMessage({ tipo: "rodar", fonte: ed.texto(), entrada: $("#entrada").value,
+                       brainrot: $("#op-brainrot").checked, hardcore: $("#op-hardcore").checked });
+}
+
+function marcarErro() {
+  const pre = $("#saida");
+  const alvo = [...pre.children].find((sp) => /📍 linha \d+ do seu \.larp/.test(sp.textContent));
+  if (!alvo) return false;
+  const n = Number(alvo.textContent.match(/📍 linha (\d+) do seu \.larp/)[1]);
+  const antes = pre.textContent.split("📍")[0].trim().split("\n").slice(-3).join("\n");
+  const [a, depois] = alvo.textContent.split(/📍 linha \d+ do seu \.larp/);
+  const bt = document.createElement("button");
+  bt.className = "ir-linha";
+  bt.textContent = `📍 linha ${n} do seu .larp`;
+  bt.title = "Ir até essa linha no editor";
+  bt.addEventListener("click", () => irParaLinha(n));
+  alvo.textContent = a;
+  alvo.append(bt, depois);
+  if (monacoOk && editor.getModel() && n <= editor.getModel().getLineCount()) {
+    const m = editor.getModel();
+    monaco.editor.setModelMarkers(m, "larp", [{ startLineNumber: n, endLineNumber: n, startColumn: 1,
+      endColumn: m.getLineMaxColumn(n), message: antes, severity: monaco.MarkerSeverity.Error }]);
+  }
+  status(`❌ Erro na linha ${n}. Clique no 📍 da SAÍDA para ir até ela.`);
+  return true;
+}
+
+function irParaLinha(n) {
+  if (monacoOk) {
+    editor.revealLineInCenter(n);
+    editor.setSelection({ startLineNumber: n, startColumn: 1, endLineNumber: n, endColumn: editor.getModel().getLineMaxColumn(n) });
+  } else {
+    const linhas = editor.value.split("\n");
+    const ini = linhas.slice(0, n - 1).reduce((t, l) => t + l.length + 1, 0);
+    editor.setSelectionRange(ini, ini + (linhas[n - 1] || "").length);
+  }
+  ed.foco();
+}
+
+function contarAura(errou) {
+  if (!$("#op-brainrot").checked) return;
+  estado.aura = (estado.aura || 0) + (errou ? -1000 : 67);
+  mostrarAura();
+  salvar();
+}
+function mostrarAura() {
+  const a = $("#aura");
+  a.hidden = !$("#op-brainrot").checked;
+  a.textContent = `✨ aura: ${estado.aura || 0}`;
+  document.body.classList.toggle("brainrot", $("#op-brainrot").checked);
+}
+
+function terminou() {
+  rodando = false;
+  botoes();
+  status("● Python pronto");
+  $("#st-tempo").textContent = `✓ terminou em ${((performance.now() - inicio) / 1000).toFixed(2).replace(".", ",")} s`;
+  despejar();
+  const errou = marcarErro();
+  contarAura(errou || /📉 -1000 aura/.test($("#saida").textContent));
+  if (temHtml && !errou) mostrarAba("pagina");   // tem HTML? abre a PÁGINA. Senão fica na SAÍDA.
+}
+
+function parar() {
+  if (worker) worker.terminate();
+  const estava = rodando || pendente;
+  rodando = pendente = false;
+  if (estava) escrever("aviso", "\n■ Programa parado. Recarregando o Python…\n");
+  $("#st-tempo").textContent = "";
+  iniciarWorker();
+  botoes();
+}
+
+// ---------------- botões e atalhos ----------------
+function comecar() {
+  for (const id of [...estado.abas]) if (!existe(id)) estado.abas = estado.abas.filter((a) => a !== id);
+  if (!existe(estado.aberto)) estado.aberto = estado.abas[0] || "exemplos/exemplo.larp";
+  if (!estado.abas.includes(estado.aberto)) estado.abas.push(estado.aberto);
+  abrir(estado.aberto);
+  aplicarTema(estado.tema);
+  aplicarFonte(estado.fonte);
+  if (!estado.viuBoasVindas) boasVindas(true);
+  ed.python("# Rode o programa para ver aqui o Python gerado.");
+  $("#pagina").srcdoc = PAGINA_VAZIA;
+}
+
+$("#bt-rodar").addEventListener("click", rodar);
+$("#bt-parar").addEventListener("click", parar);
+$("#bt-limpar").addEventListener("click", limparSaida);
+
+// ---------- ajuda: todas as linguagens (clique = insere o exemplo) e o elenco brainrot ----------
+const LINGUAGENS = [
+  ["Python", "python", 'print("oi")'],
+  ["JavaScript / TypeScript", "javascript", 'console.log("oi")'],
+  ["Java", "java", 'System.out.println("oi");'],
+  ["C / C++", "cpp", 'cout << "oi" << endl;'],
+  ["C#", "csharp", 'Console.WriteLine("oi");'],
+  ["Rust", "rust", 'println!("{}", "oi");'],
+  ["Go", "go", 'fmt.Println("oi")'],
+  ["Ruby", "ruby", 'puts "oi"'],
+  ["PHP", "php", 'echo "oi";'],
+  ["Kotlin / Swift", "kotlin", 'println("oi")'],
+  ["Lua", "lua", 'local nome = "oi"\nprint(nome)'],
+  ["Haskell", "haskell", 'putStrLn "oi"'],
+  ["Elixir", "elixir", 'IO.puts "oi"'],
+  ["Português", "portugues", 'escreva("oi")'],
+  ["Brainfuck", "", "++++++++++[>+++++++++++<-]>+.------."],
+  ["HTML", "", "<h1>Oi do HTML</h1>"],
+  ["CSS", "", "<style>h1 { color: gold; text-align: center; }</style>"],
+];
+const ELENCO = [
+  ["🪵 Tung Tung Tung Sahur", "no fim de todo programa que deu certo"],
+  ["🦈 Tralalero Tralala", "a cada volta de loop"],
+  ["💃 Ballerina Cappuccina", "quando uma função devolve um valor (67 = SIX SEVEN!)"],
+  ["🐊✈️ Bombardiro Crocodilo", "quando um catch pega um erro"],
+  ["🌴 Brr Brr Patapim", "nome que não existe"],
+  ["🟡 Verity", "sugere o nome certo"],
+  ["🌵🐘 Lirilì Larilà", "no sleep(): para o tempo"],
+  ["☕🗡️ Cappuccino Assassino", "divisão por zero"],
+  ["🦐🐱 Trippi Troppi", "tipos misturados"],
+  ["🐒🍌 Chimpanzini Bananini", "posição que não existe na lista"],
+  ["🐄🪐 La Vaca Saturno Saturnita", "recursão infinita"],
+  ["🪿✈️ Bombombini Gusini", "throw que ninguém pegou"],
+];
+function inserirNoEditor(codigo) {
+  if (monacoOk) {
+    const sel = editor.getSelection();
+    const pos = sel.getStartPosition();
+    const comeco = pos.column > 1 ? "\n" : "";        // no meio de uma linha? pula para a próxima
+    editor.executeEdits("ajuda", [{ range: sel, text: comeco + codigo + "\n", forceMoveMarkers: true }]);
+  } else {
+    editor.setRangeText(codigo + "\n", editor.selectionStart, editor.selectionEnd, "end");
+    guardarTexto(estado.aberto, editor.value);
+  }
+  ed.foco();
+  status("✍️ Exemplo colocado no editor. Aperte Ctrl+Enter para rodar.");
+}
+for (const [nome, larpAs, codigo] of LINGUAGENS) {
+  const b = document.createElement("button");
+  b.className = "ling";
+  b.innerHTML = "<b></b><code></code>" + (larpAs ? "<small></small>" : "");
+  b.querySelector("b").textContent = nome;
+  b.querySelector("code").textContent = codigo;
+  if (larpAs) b.querySelector("small").textContent = `no hardcore: larp as ${larpAs}`;
+  b.setAttribute("aria-label", `Inserir exemplo de ${nome}: ${codigo}`);
+  b.addEventListener("click", () => inserirNoEditor(codigo));
+  $("#lista-linguagens").appendChild(b);
+}
+for (const [nome, quando] of ELENCO) {
+  const li = document.createElement("li");
+  li.innerHTML = "<b></b>: <span></span>";
+  li.querySelector("b").textContent = nome;
+  li.querySelector("span").textContent = quando;
+  $("#lista-brainrot").appendChild(li);
+}
+$("#bt-novo").addEventListener("click", () => novoArquivo());
+for (const b of $$(".abas-painel [data-aba]")) b.addEventListener("click", () => mostrarAba(b.dataset.aba));
+$("#entrada").addEventListener("input", () => { estado.entradas[estado.aberto] = $("#entrada").value; salvar(); });
+
+for (const [id, chave] of [["#op-brainrot", "brainrot"], ["#op-hardcore", "hardcore"]]) {
+  $(id).checked = !!estado[chave];
+  $(id).addEventListener("change", () => { estado[chave] = $(id).checked; salvar(); mostrarAura(); });
+}
+mostrarAura();
+
+// ---------- aparência e acessibilidade ----------
+function aplicarTema(t) {
+  estado.tema = t in TEMAS_MONACO ? t : "escuro";
+  document.documentElement.dataset.tema = estado.tema;
+  for (const r of $$('input[name="tema"]')) r.checked = r.value === estado.tema;
+  if (monacoOk) monaco.editor.setTheme(TEMAS_MONACO[estado.tema]);
+  salvar();
+}
+function aplicarFonte(n) {
+  estado.fonte = Math.min(28, Math.max(10, n));
+  document.documentElement.style.setProperty("--tam", estado.fonte + "px");
+  document.documentElement.style.setProperty("--tam-saida", (estado.fonte - 1) + "px");
+  $("#fonte-valor").textContent = estado.fonte + " px";
+  if (monacoOk) { editor.updateOptions({ fontSize: estado.fonte }); pyEditor.updateOptions({ fontSize: estado.fonte - 1 }); }
+  salvar();
+}
+for (const r of $$('input[name="tema"]')) r.addEventListener("change", () => aplicarTema(r.value));
+$("#fonte-menos").addEventListener("click", () => aplicarFonte(estado.fonte - 1));
+$("#fonte-mais").addEventListener("click", () => aplicarFonte(estado.fonte + 1));
+$("#op-leitor").checked = !!estado.leitor;
+$("#op-leitor").addEventListener("change", () => {
+  estado.leitor = $("#op-leitor").checked;
+  if (monacoOk) editor.updateOptions({ accessibilitySupport: estado.leitor ? "on" : "auto" });
+  salvar();
+});
+document.documentElement.dataset.tema = estado.tema;
+document.documentElement.style.setProperty("--tam", estado.fonte + "px");
+document.documentElement.style.setProperty("--tam-saida", (estado.fonte - 1) + "px");
+
+function boasVindas(mostrar) {
+  $("#boas-vindas").hidden = !mostrar;
+  if (mostrar) $("#bv-ok").focus();
+}
+$("#bv-ok").addEventListener("click", () => { estado.viuBoasVindas = true; salvar(); boasVindas(false); ed.foco(); });
+$("#boas-vindas").addEventListener("keydown", (e) => { if (e.key === "Escape") $("#bv-ok").click(); });
+$("#bt-dicas").addEventListener("click", () => boasVindas(true));
+$("#pular").addEventListener("click", (e) => { e.preventDefault(); ed.foco(); });
+
+// dica de cada exemplo = o primeiro comentário dele
+function dicaDe(id) {
+  const primeira = (textoDe(id) || "").split("\n").find((l) => l.trim()) || "";
+  const m = primeira.match(/^\s*(?:\/\/|#)\s*(.+)/);
+  return m ? `${nomeDe(id)}: ${m[1]}` : nomeDe(id);
+}
+
+$("#bt-baixar").addEventListener("click", () => {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([ed.texto()], { type: "text/plain;charset=utf-8" }));
+  a.download = nomeDe(estado.aberto);
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+});
+$("#bt-abrir").addEventListener("click", () => $("#arquivo").click());
+$("#arquivo").addEventListener("change", async (e) => {
+  const f = e.target.files[0];
+  if (!f) return;
+  const texto = (await f.text()).replace(/^﻿/, "");
+  const nome = nomeValido(f.name);
+  if (nome in estado.meus && !confirm(`Já existe ${nome}. Substituir?`)) return;
+  novoArquivo(nome, texto);
+  e.target.value = "";
+});
+
+// barra de atividades: clicar no ícone ativo esconde/mostra a lateral (igual ao VS Code)
+const celular = () => matchMedia("(max-width: 760px)").matches;
+for (const b of $$("#atividade button")) {
+  b.addEventListener("click", () => {
+    const jaAtivo = b.classList.contains("ativo");
+    const aberta = celular() ? document.body.classList.contains("com-lateral") : !document.body.classList.contains("sem-lateral");
+    const abrirLateral = !(jaAtivo && aberta);
+    document.body.classList.toggle(celular() ? "com-lateral" : "sem-lateral", celular() ? abrirLateral : !abrirLateral);
+    for (const o of $$("#atividade button")) o.classList.toggle("ativo", o === b);
+    for (const s of $$("#lateral section")) s.hidden = s.dataset.vista !== b.dataset.vista;
+  });
+}
+
+window.addEventListener("keydown", (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key === "Enter") { e.preventDefault(); rodar(); }
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") { e.preventDefault(); status("💾 Salvo (o LarpStudios salva sozinho)"); setTimeout(() => status(pronto ? "● Python pronto" : "⏳ Carregando o Python…"), 1500); }
+});
+
+// divisor arrastável entre o editor e o painel
+(() => {
+  const div = $("#divisor"), centro = $("#centro");
+  if (estado.painel) document.documentElement.style.setProperty("--painel", estado.painel);
+  div.addEventListener("pointerdown", (e) => {
+    div.setPointerCapture(e.pointerId);
+    div.classList.add("arrastando");
+    const mover = (ev) => {
+      const r = centro.getBoundingClientRect();
+      const h = Math.min(Math.max(r.bottom - ev.clientY, 80), r.height - 120);
+      estado.painel = h + "px";
+      document.documentElement.style.setProperty("--painel", estado.painel);
+    };
+    const soltar = () => { div.classList.remove("arrastando"); div.removeEventListener("pointermove", mover); salvar(); };
+    div.addEventListener("pointermove", mover);
+    div.addEventListener("pointerup", soltar, { once: true });
+  });
+})();
+
+// ---------------- começar ----------------
+iniciarWorker();
+if (typeof require === "undefined") {
+  status("⚠️ Editor simples (o do VS Code não carregou)");
+  iniciarTextarea();
+} else {
+  const VS = "https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/min/vs";
+  window.MonacoEnvironment = { getWorkerUrl: () => "data:text/javascript;charset=utf-8," + encodeURIComponent(
+    `self.MonacoEnvironment = { baseUrl: "${VS}/../" }; importScripts("${VS}/base/worker/workerMain.js");`) };
+  require.config({ paths: { vs: VS } });
+  require(["vs/editor/editor.main"], iniciarMonaco, iniciarTextarea);
+}
+</script>
+</body>
+</html>

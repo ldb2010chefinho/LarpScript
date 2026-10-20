@@ -1,0 +1,33 @@
+{
+  "name": "larp-script",
+  "displayName": "LARP Script",
+  "description": "Cores para arquivos .larp (a linguagem que finge ser todas as outras)",
+  "version": "0.1.0",
+  "publisher": "ldb",
+  "engines": { "vscode": "^1.60.0" },
+  "categories": ["Programming Languages"],
+  "contributes": {
+    "languages": [
+      {
+        "id": "larp",
+        "aliases": ["LARP Script", "larp"],
+        "extensions": [".larp"],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "snippets": [
+      { "language": "larp", "path": "./snippets/larp.json" }
+    ],
+    "grammars": [
+      {
+        "language": "larp",
+        "scopeName": "source.larp",
+        "path": "./syntaxes/larp.tmLanguage.json",
+        "embeddedLanguages": {
+          "meta.embedded.css.larp": "css",
+          "meta.embedded.html.larp": "html"
+        }
+      }
+    ]
+  }
+}

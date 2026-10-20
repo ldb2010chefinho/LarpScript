@@ -1,0 +1,130 @@
+{
+  "name": "LARP Script",
+  "scopeName": "source.larp",
+  "patterns": [
+    { "include": "#css-block" },
+    { "include": "#html-line" },
+    { "include": "#brainfuck" },
+    { "include": "#comments" },
+    { "include": "#strings" },
+    { "include": "#larp-as" },
+    { "include": "#keywords-control" },
+    { "include": "#keywords-decl" },
+    { "include": "#types" },
+    { "include": "#constants" },
+    { "include": "#print-aliases" },
+    { "include": "#numbers" },
+    { "include": "#function-calls" },
+    { "include": "#operators" }
+  ],
+  "repository": {
+    "css-block": {
+      "begin": "(?i)(<)(style)([^>]*)(>)",
+      "end": "(?i)(</)(style)(>)",
+      "beginCaptures": {
+        "1": { "name": "punctuation.definition.tag.html" },
+        "2": { "name": "entity.name.tag.html" },
+        "4": { "name": "punctuation.definition.tag.html" }
+      },
+      "endCaptures": {
+        "1": { "name": "punctuation.definition.tag.html" },
+        "2": { "name": "entity.name.tag.html" },
+        "3": { "name": "punctuation.definition.tag.html" }
+      },
+      "contentName": "meta.embedded.css.larp",
+      "patterns": [{ "include": "source.css" }]
+    },
+    "html-line": {
+      "begin": "^\\s*(?=</?[a-zA-Z!])",
+      "end": "$",
+      "contentName": "meta.embedded.html.larp",
+      "patterns": [{ "include": "text.html.basic" }]
+    },
+    "brainfuck": {
+      "begin": "^\\s*(?=[+\\-<>\\[\\].,]{2,}\\s*$)",
+      "end": "$",
+      "patterns": [
+        { "match": "[+\\-]", "name": "keyword.operator.arithmetic.brainfuck.larp" },
+        { "match": "[<>]", "name": "keyword.control.pointer.brainfuck.larp" },
+        { "match": "[\\[\\]]", "name": "punctuation.definition.loop.brainfuck.larp" },
+        { "match": "[.,]", "name": "support.function.io.brainfuck.larp" }
+      ]
+    },
+    "comments": {
+      "patterns": [
+        { "match": "//.*$", "name": "comment.line.double-slash.larp" },
+        { "match": "#.*$", "name": "comment.line.number-sign.larp" },
+        { "begin": "/\\*", "end": "\\*/", "name": "comment.block.larp" }
+      ]
+    },
+    "strings": {
+      "patterns": [
+        {
+          "name": "string.quoted.double.larp",
+          "begin": "\"",
+          "end": "\"",
+          "patterns": [{ "match": "\\\\.", "name": "constant.character.escape.larp" }]
+        },
+        {
+          "name": "string.quoted.single.larp",
+          "begin": "'",
+          "end": "'",
+          "patterns": [{ "match": "\\\\.", "name": "constant.character.escape.larp" }]
+        },
+        {
+          "name": "string.template.larp",
+          "begin": "`",
+          "end": "`",
+          "patterns": [
+            { "match": "\\\\.", "name": "constant.character.escape.larp" },
+            {
+              "begin": "\\$\\{",
+              "end": "\\}",
+              "name": "meta.template.expression.larp",
+              "patterns": [{ "include": "$self" }]
+            }
+          ]
+        }
+      ]
+    },
+    "larp-as": {
+      "match": "\\b(larp)\\s+(as)\\b",
+      "captures": {
+        "1": { "name": "keyword.other.larp.larp" },
+        "2": { "name": "keyword.other.larp.larp" }
+      }
+    },
+    "keywords-control": {
+      "match": "\\b(if|elif|elsif|elseif|else|senao|se|enquanto|while|for|foreach|in|of|switch|case|default|match|break|continue|return|retorne|try|catch|except|finally|throw|raise|do|end|then|unless|until|loop|begin|rescue|ensure)\\b",
+      "name": "keyword.control.larp"
+    },
+    "keywords-decl": {
+      "match": "\\b(def|function|fn|func|funcao|fun|class|let|const|var|val|local|mut|public|private|protected|static|async|new|extends|this|self|constructor|initialize|import|from|export)\\b",
+      "name": "storage.type.larp"
+    },
+    "types": {
+      "match": "\\b(int|string|String|double|float|bool|boolean|long|char|void|auto|any|number|str|i32|i64|u32|u64|f32|f64)\\b",
+      "name": "support.type.larp"
+    },
+    "constants": {
+      "match": "\\b(true|false|null|nil|undefined|None|True|False|verdadeiro|falso|nulo)\\b",
+      "name": "constant.language.larp"
+    },
+    "print-aliases": {
+      "match": "(?<![\\w.])(console\\.log|System\\.out\\.println|System\\.out\\.print|fmt\\.Println|println!|puts|echo|escreva|print|cout)(?!\\w)",
+      "name": "support.function.print.larp"
+    },
+    "numbers": {
+      "match": "\\b\\d+(\\.\\d+)?\\b",
+      "name": "constant.numeric.larp"
+    },
+    "function-calls": {
+      "match": "\\b[A-Za-z_]\\w*(?=\\s*\\()",
+      "name": "entity.name.function.larp"
+    },
+    "operators": {
+      "match": "=>|->|:=|\\+\\+|--|[=!<>]=?|&&|\\|\\||[+\\-*/%]",
+      "name": "keyword.operator.larp"
+    }
+  }
+}

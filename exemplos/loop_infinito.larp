@@ -1,0 +1,5 @@
+// Rode com --tempo=1 para a LARP parar sozinha
+let i = 0
+while (true) {
+    i++
+}

@@ -1,0 +1,38 @@
+i = 0
+while True:
+    print(_S("volta ") + i)
+    i += 1
+    if not (i < 3):
+        break
+pessoa = _O({"nome": _S("Ana"), "idade": 20, "pets": [_S("Rex")]})
+print(pessoa.nome, pessoa[_S("idade")])
+pessoa.idade = 21
+config = _O({"tema": _S("escuro"), "tamanho": _O({"largura": 800, "altura": 600}),})
+print(config.tamanho.largura, JSON.stringify(config))
+vazio = _O()
+vazio.x = 5
+print(vazio)
+s = {1, 2}
+print(type(s).__name__)
+d = {k: k * 2 for k in range(3)}
+print(d)
+lista = [1, 2,]
+print(lista)
+nomes = ArrayList()
+nomes.add(_S("Bia"))
+print(nomes.get(0) + _S(" ") + len(nomes))
+m = HashMap()
+def mostrar(x):
+    print(_S("mostrar: ") + x)
+mostrar(42)
+def maior(a, b):
+    if a > b:
+        return a
+    return b
+_println(_S("{}"), maior(3, 9))
+nums = [4, 5, 6]
+print(len(nums))
+print(_S("strings " "coladas" ' juntas'))
+print(_S("Oi do C#"))
+print(_S("Oi do Haskell"))
+print(_S("Oi do Elixir"))

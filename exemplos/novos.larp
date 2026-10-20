@@ -1,0 +1,87 @@
+// ---- switch estilo JavaScript
+let dia = 3
+switch (dia) {
+    case 1:
+        puts "segunda"
+        break;
+    case 2, 3:
+        puts "terça ou quarta"
+        break;
+    default:
+        puts "outro dia"
+}
+
+# ---- Ruby com end
+def saudar(nome)
+  puts "Oi, #{nome}!"
+end
+saudar("Lucca")
+3.times do |i|
+  puts "volta #{i}"
+end
+if dia > 2
+  puts "dia maior que 2"
+else
+  puts "dia pequeno"
+end
+
+// ---- Go
+for i := 0; i < 3; i++ {
+    fmt.Println(i)
+}
+for i, v := range [10, 20] {
+    fmt.Println(i, v)
+}
+
+// ---- ternário, tamanho e push
+let lista = [1, 2, 3]
+console.log(lista.length > 2 ? "grande" : "pequena")
+lista.push(4)
+console.log(lista.length)
+
+// ---- PHP
+$nomes = ["Ana", "Bia"]
+foreach ($nomes as $nome) {
+    echo $nome
+}
+
+// ---- texto + número como no JavaScript
+let total = 10
+console.log("Total: " + total)
+console.log(5 + " maçãs")
+console.log(Math.floor(3.7), parseInt("42") + 1)
+
+// ---- for com passo e contagem regressiva
+for (let k = 10; k > 0; k -= 4) {
+    console.log(k)
+}
+
+// ---- arrow function com bloco
+const quadrado = (x) => {
+    return x * x;
+};
+console.log(quadrado(7))
+
+// ---- classe estilo Ruby
+class Cachorro < Object
+  def initialize(nome)
+    @nome = nome
+  end
+  def latir
+    puts "#{@nome} diz: au au!"
+  end
+end
+Cachorro.new("Rex").latir()
+
+// ---- Brainfuck
+++++++++++[>+++++++++++<-]>+.------.
+
+// ---- Kotlin e Lua
+fun soma(a: Int, b: Int): Int {
+    return a + b
+}
+println(soma(2, 3))
+local x = 5
+if x ~= 4 then
+    print("x não é 4")
+end

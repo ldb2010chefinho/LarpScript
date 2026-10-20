@@ -1,0 +1,16 @@
+Python
+JavaScript
+Java
+C++
+C#
+Rust
+Go
+Ruby
+PHP
+Kotlin
+Lua
+Haskell
+Elixir
+Português
+BF
+🌐 Página HTML criada: <pasta>/exemplos/todas_linguagens.html

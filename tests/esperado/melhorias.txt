@@ -1,0 +1,22 @@
+🦈 tralalero tralala!
+volta 0
+🦈 tralalero tralala!
+volta 1
+🦈 tralalero tralala!
+volta 2
+Ana 20
+800 {"tema": "escuro", "tamanho": {"largura": 800, "altura": 600}}
+{'x': 5}
+set
+{0: 0, 1: 2, 2: 4}
+[1, 2]
+Bia 1
+mostrar: 42
+💃 Ballerina Cappuccina dança antes de entregar: 9
+9
+3
+strings coladas juntas
+Oi do C#
+Oi do Haskell
+Oi do Elixir
+🪵 TUNG TUNG TUNG TUNG TUNG TUNG TUNG TUNG TUNG SAHUR!

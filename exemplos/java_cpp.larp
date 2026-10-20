@@ -1,0 +1,30 @@
+import java.util.Scanner;
+#include <iostream>
+
+"""
+Texto de várias linhas
+if (isso fosse código) { quebraria }
+"""
+
+public class Main {
+    public static int soma(int a, int b) {
+        return a + b;
+    }
+    public static void main() {
+        int x = 5;
+        String nome = "Lucca";
+        System.out.println("Oi, " + nome + " " + soma(x, 2));
+        for (int i = 0; i < 3; i++) {
+            cout << "i=" << i << endl;
+        }
+        try {
+            int z = 10 / 0;
+        } catch (Exception e) {
+            System.out.println("erro pego: " + e);
+        }
+    }
+}
+Main.main();
+
+let idade = prompt("idade? ")
+console.log("você tem " + idade + " anos")

@@ -1,0 +1,4 @@
+🌴 Brr Brr Patapim se perdeu na floresta procurando: contdor
+🟡 Verity, que sabe um milhão de coisas, acha que é 'contador'?
+   📉 -1000 aura
+📍 linha 3 do seu .larp: console.log(contdor + 1)

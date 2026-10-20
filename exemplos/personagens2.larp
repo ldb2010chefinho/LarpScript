@@ -1,0 +1,12 @@
+larp as lirili
+sleep(0)
+larp as trippi
+larp as chimpanzini
+larp as vaca
+larp as verity
+function seisSete() {
+    return 60 + 7
+}
+seisSete()
+let lista = [1, 2, 3]
+console.log(lista[10])

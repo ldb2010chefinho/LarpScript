@@ -1,0 +1,3 @@
+🎭 O JavaScript diria 'undefined' e seguiria em frente. Eu não: 'contdor' não existe.
+   Você quis dizer 'contador'?
+📍 linha 3 do seu .larp: console.log(contdor + 1)

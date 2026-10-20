@@ -1,0 +1,36 @@
+print(_S("Oi do JavaScript!"))
+print(_S("Oi do Ruby!"))
+print(_S("Oi do PHP"))
+print(_S("Oi do Java!"))
+print(_S("Oi em português!"))
+def fib(n):
+    a, b = 0, 1
+    for i in range(n):
+        print(a)
+        a, b = b, a + b
+fib(6)
+def dobro(x):
+    return x * 2
+soma = lambda a, b: a + b
+total = soma(dobro(3), 4)
+print(f"Total: {total}")
+for i in range(1, 15 + 1):
+    if i % 15 == 0:
+        print(_S("FizzBuzz"))
+    elif i % 3 == 0:
+        print(_S("Fizz"))
+    elif i % 5 == 0:
+        print(_S("Buzz"))
+    else:
+        print(i)
+class Gato:
+    def __init__(self, nome):
+        self.nome = nome
+    def falar(self):
+        print(self.nome + _S(" diz miau"))
+gato = Gato(_S("Mingau"))
+gato.falar()
+try:
+    x = 1 / 0
+except Exception as e:
+    print(_S("Deu ruim: ") + str(e))

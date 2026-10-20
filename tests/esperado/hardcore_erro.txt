@@ -1,0 +1,2 @@
+🎭 [HARDCORE] você estava no personagem Python e, do nada, escreveu como JavaScript. Isso não é LARP, é bagunça! Avise antes com: larp as javascript:
+📍 linha 3 do seu .larp: console.log("mas escrevi como JavaScript!")

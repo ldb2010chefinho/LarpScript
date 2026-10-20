@@ -1,0 +1,11 @@
+🌵🐘 Lirilì Larilà chegou de sandália e parou o relógio
+🌵🐘 Lirilì Larilà parou o tempo por 0 s
+🦐🐱 Trippi Troppi Troppa Trippa!
+🐒🍌 Chimpanzini Bananini! Wa wa wa!
+🐄🪐 La Vaca Saturno Saturnita entrou em órbita
+🟡 Verity chegou. Ela sabe um milhão de coisas.
+💃 Ballerina Cappuccina dança antes de entregar: 67
+🤲 SIX SEVEN! 6️⃣7️⃣
+🐒🍌 Chimpanzini Bananini procurou banana numa posição que não existe na lista.
+   📉 -1000 aura
+📍 linha 12 do seu .larp: console.log(lista[10])

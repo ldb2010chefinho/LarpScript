@@ -1,0 +1,50 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Rodar LARP (brainrot)",
+      "type": "shell",
+      "command": "py",
+      "args": ["larp.py", "${file}", "--brainrot"],
+      "group": { "kind": "build", "isDefault": true },
+      "presentation": { "reveal": "always", "panel": "shared", "clear": true },
+      "problemMatcher": []
+    },
+    {
+      "label": "Rodar LARP (normal)",
+      "type": "shell",
+      "command": "py",
+      "args": ["larp.py", "${file}"],
+      "group": "build",
+      "presentation": { "reveal": "always", "panel": "shared", "clear": true },
+      "problemMatcher": []
+    },
+    {
+      "label": "Rodar LARP (hardcore)",
+      "type": "shell",
+      "command": "py",
+      "args": ["larp.py", "${file}", "--hardcore"],
+      "group": "build",
+      "presentation": { "reveal": "always", "panel": "shared", "clear": true },
+      "problemMatcher": []
+    },
+    {
+      "label": "Rodar os testes",
+      "type": "shell",
+      "command": "py",
+      "args": ["tests/rodar_testes.py"],
+      "group": "test",
+      "presentation": { "reveal": "always", "panel": "shared", "clear": true },
+      "problemMatcher": []
+    },
+    {
+      "label": "Ver o Python gerado",
+      "type": "shell",
+      "command": "py",
+      "args": ["larp.py", "${file}", "--py"],
+      "group": "build",
+      "presentation": { "reveal": "always", "panel": "shared", "clear": true },
+      "problemMatcher": []
+    }
+  ]
+}

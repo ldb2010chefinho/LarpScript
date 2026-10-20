@@ -1,0 +1,2 @@
+
+⏰ O programa passou de 1 s e eu fechei a cortina. Será um loop infinito?

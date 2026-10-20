@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<!--
+  LarpStudios 🎭 — a IDE da LARP Script no navegador. Feito por ldb e rezenha.
+  ⚠️ O index.html da raiz é GERADO a partir deste arquivo. Edite studio/modelo.html e rode:
+       py studio\montar.py
+-->
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LarpStudios</title>
+<meta name="description" content="LarpStudios: escreva e rode LARP Script no navegador. Feito por ldb e rezenha.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎭</text></svg>">
+<style>
+  :root {
+    --fundo: #1e1e1e; --lateral: #252526; --atividade: #333333; --topo: #181818;
+    --aba: #2d2d2d; --borda: #3c3c3c; --texto: #cccccc; --apagado: #a8a8a8;
+    --forte: #ffffff; --hover: #ffffff1a; --selecionado: #37373d; --campo: #2a2a2a;
+    --destaque: #ffd700; --roxo: #7c3aed; --verde: #4ec9b0; --vermelho: #f48771;
+    --painel: 38%;
+    --ui: "Segoe UI", system-ui, -apple-system, sans-serif;
+    --mono: "Cascadia Code", Consolas, "Courier New", monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--fundo); color: var(--texto);
+               font: 13px var(--ui); overflow: hidden; }
+  button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+  button:disabled { opacity: .4; cursor: default; }
+  [hidden] { display: none !important; }
+  :focus-visible { outline: 2px solid var(--destaque); outline-offset: -2px; }
+  .pular { position: absolute; left: 8px; top: -80px; z-index: 20; padding: 8px 14px; background: var(--destaque);
+           color: #000; border-radius: 4px; font-weight: 600; }
+  .pular:focus { top: 6px; }
+
+  /* ---------- temas: claro e alto contraste (acessibilidade) ---------- */
+  :root[data-tema="claro"] { --fundo: #ffffff; --lateral: #f3f3f3; --atividade: #2c2c2c; --topo: #e5e5e5;
+    --aba: #ececec; --borda: #c8c8c8; --texto: #1f1f1f; --apagado: #555555; --destaque: #8a5a00;
+    --verde: #0b6b4b; --vermelho: #b42318; --forte: #000000; --hover: #0000000f; --selecionado: #d6e4f5;
+    --campo: #f7f7f7; }
+  :root[data-tema="contraste"] { --fundo: #000; --lateral: #000; --atividade: #000; --topo: #000; --aba: #000;
+    --borda: #ffffff; --texto: #ffffff; --apagado: #e6e6e6; --destaque: #ffff00; --roxo: #000; --verde: #8dff8d;
+    --vermelho: #ff9a9a; --forte: #ffffff; --hover: #ffffff26; --selecionado: #333333; --campo: #000; }
+  :root[data-tema="contraste"] #status { border-top: 1px solid #fff; }
+  :root[data-tema="contraste"] .aba.ativo, :root[data-tema="contraste"] #lateral li.ativo { outline: 1px dashed #ffff00; }
+
+  /* ---------- boas-vindas, erro clicável, aura ---------- */
+  .boas-vindas { position: absolute; right: 18px; top: 46px; z-index: 6; max-width: 340px; background: var(--lateral);
+                 color: var(--texto); border: 1px solid var(--destaque); border-radius: 8px; padding: 14px 16px;
+                 box-shadow: 0 10px 30px #0009; line-height: 1.5; }
+  .boas-vindas h2 { margin: 0 0 4px; font-size: 15px; color: var(--destaque); }
+  .boas-vindas ol { margin: 6px 0 12px; padding-left: 20px; }
+  .boas-vindas kbd, .config kbd { font-family: var(--mono); background: var(--hover); padding: 0 4px; border-radius: 3px; }
+  .botao-forte { background: var(--destaque); color: #000; padding: 6px 14px; border-radius: 4px; font-weight: 600; }
+  :root[data-tema="claro"] .botao-forte { color: #fff; }
+  #saida .ir-linha { color: var(--destaque); text-decoration: underline; padding: 0; font: inherit; }
+  body.brainrot #status { background: linear-gradient(90deg, #6d28d9, #be185d, #b45309); }
+  .config { padding: 0 14px 14px; line-height: 1.5; }
+  .config fieldset { border: 1px solid var(--borda); border-radius: 6px; margin: 0 0 12px; padding: 8px 10px; }
+  .config legend { padding: 0 4px; font-weight: 600; color: var(--destaque); }
+  .config label { display: flex; align-items: center; gap: 8px; padding: 3px 0; cursor: pointer; }
+  .config .linha-botoes { display: flex; align-items: center; gap: 6px; }
+  .config .linha-botoes button { border: 1px solid var(--borda); border-radius: 4px; padding: 3px 10px; min-width: 34px; }
+  .config p { margin: 6px 0; color: var(--apagado); }
+  .config > button { border: 1px solid var(--borda); border-radius: 4px; padding: 5px 10px; width: 100%; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+  #app { height: 100%; display: grid; grid-template-columns: 48px 230px minmax(0, 1fr);
+         grid-template-rows: 40px minmax(0, 1fr) 24px;
+         grid-template-areas: "topo topo topo" "ativ lat centro" "status status status"; }
+  body.sem-lateral #app { grid-template-columns: 48px 0 minmax(0, 1fr); }
+
+  /* ---------- barra de cima ---------- */
+  #topo { grid-area: topo; display: flex; align-items: center; gap: 6px; padding: 0 10px;
+          background: var(--topo); border-bottom: 1px solid var(--borda); }
+  .marca { font-size: 15px; margin-right: 10px; white-space: nowrap; }
+  .marca b { color: var(--destaque); }
+  #topo button { padding: 5px 10px; border-radius: 4px; white-space: nowrap; }
+  #topo button:hover:not(:disabled) { background: var(--hover); }
+  #bt-rodar { background: #16825d; color: #fff; font-weight: 600; }
+  #bt-rodar:hover:not(:disabled) { background: #1a9d70 !important; }
+  .chave { display: flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 4px;
+           cursor: pointer; user-select: none; white-space: nowrap; }
+  .chave:hover { background: var(--hover); }
+  .espaco { flex: 1; }
+  .credito { color: var(--apagado); font-size: 12px; white-space: nowrap; }
+  .credito b { color: var(--texto); }
+
+  /* ---------- barra de atividades e lateral ---------- */
+  #atividade { grid-area: ativ; background: var(--atividade); display: flex; flex-direction: column; }
+  #atividade button { height: 48px; font-size: 22px; opacity: .55; border-left: 2px solid transparent; }
+  #atividade button.ativo { opacity: 1; border-left-color: var(--destaque); }
+  #lateral { grid-area: lat; background: var(--lateral); overflow: auto; border-right: 1px solid var(--borda); }
+  .titulo-lateral { padding: 10px 14px; font-size: 11px; letter-spacing: .5px; color: var(--apagado); }
+  .grupo { display: flex; align-items: center; justify-content: space-between; padding: 4px 8px 4px 14px;
+           font-size: 11px; font-weight: 700; letter-spacing: .3px; }
+  .grupo button { font-size: 15px; padding: 0 6px; border-radius: 3px; }
+  .grupo button:hover { background: var(--hover); }
+  #lateral ul { list-style: none; margin: 0 0 10px; padding: 0; }
+  #lateral li { display: flex; align-items: center; gap: 6px; padding: 1px 8px 1px 22px; }
+  #lateral li:hover { background: var(--hover); }
+  #lateral li.ativo { background: var(--selecionado); }
+  #lateral li .nome { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #lateral li .x { visibility: hidden; padding: 3px 7px; color: var(--apagado); border-radius: 3px; }
+  #lateral li:hover .x, #lateral li:focus-within .x { visibility: visible; }
+  #lateral li .abrir { flex: 1; display: flex; align-items: center; gap: 6px; min-width: 0; padding: 3px 0; text-align: left; }
+  .editado { color: var(--destaque); font-size: 10px; }
+  .ajuda { padding: 0 14px 14px; line-height: 1.55; }
+  .ajuda h3 { font-size: 12px; margin: 14px 0 4px; color: var(--destaque); }
+  .ajuda code, .ajuda kbd { font-family: var(--mono); background: var(--hover); padding: 0 4px; border-radius: 3px; }
+  .ajuda p { margin: 4px 0; }
+  .ling { display: block; width: 100%; text-align: left; margin: 4px 0; padding: 5px 8px;
+          border: 1px solid var(--borda); border-radius: 4px; }
+  .ling:hover { background: var(--hover); border-color: var(--destaque); }
+  .ling b { display: block; }
+  .ling code { display: block; white-space: pre; overflow: hidden; text-overflow: ellipsis; color: var(--apagado);
+               background: none !important; padding: 0 !important; font-size: 12px; }
+  .ling small { color: var(--apagado); }
+  .lista-brainrot { margin: 4px 0; padding-left: 18px; }
+  .lista-brainrot li { margin: 3px 0; }
+
+  /* ---------- centro: abas, editor, painel ---------- */
+  #centro { grid-area: centro; display: flex; flex-direction: column; min-width: 0; position: relative; }
+  #abas { display: flex; background: var(--lateral); height: 35px; flex: none; overflow-x: auto; }
+  .aba { display: flex; align-items: center; gap: 6px; padding: 0 10px 0 14px; background: var(--aba);
+         border-right: 1px solid var(--fundo); color: var(--apagado); cursor: pointer; white-space: nowrap;
+         border-top: 1px solid transparent; }
+  .aba.ativo { background: var(--fundo); color: var(--forte); border-top-color: var(--destaque); }
+  .aba .x { padding: 3px 7px; border-radius: 3px; }
+  .aba .x:hover { background: var(--hover); }
+  #bt-restaurar { margin-left: auto; padding: 0 12px; color: var(--apagado); white-space: nowrap; }
+  #bt-restaurar:hover { color: var(--forte); }
+  #editor { flex: 1; min-height: 0; position: relative; }
+  #editor textarea, #python pre { width: 100%; height: 100%; margin: 0; padding: 10px 14px; resize: none;
+         border: 0; outline: 0; background: var(--fundo); color: var(--texto); font: var(--tam, 14px)/1.5 var(--mono);
+         tab-size: 4; white-space: pre; overflow: auto; }
+  #divisor { height: 5px; flex: none; cursor: row-resize; background: var(--borda); }
+  #divisor:hover, #divisor.arrastando { background: var(--roxo); }
+  #painel { height: var(--painel); flex: none; display: flex; min-height: 80px; overflow: hidden; }
+  #painel-saida-area { flex: 1; display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+  .abas-painel { display: flex; align-items: center; gap: 2px; padding: 0 8px; height: 34px; flex: none; }
+  .abas-painel button { padding: 6px 10px; font-size: 11px; letter-spacing: .5px; color: var(--apagado);
+                        border-bottom: 1px solid transparent; position: relative; }
+  .abas-painel button.ativo { color: var(--forte); border-bottom-color: var(--destaque); }
+  .abas-painel button.novidade::after { content: ""; position: absolute; top: 5px; right: 2px; width: 6px;
+                        height: 6px; border-radius: 50%; background: var(--destaque); }
+  .conteudo-painel { flex: 1; min-height: 0; position: relative; }
+  #saida { margin: 0; height: 100%; overflow: auto; padding: 8px 14px; font: var(--tam-saida, 13px)/1.45 var(--mono);
+           white-space: pre-wrap; word-break: break-word; }
+  #saida .err { color: var(--vermelho); }
+  #saida .eco { color: var(--verde); }
+  #saida .aviso { color: var(--apagado); font-style: italic; }
+  #pagina { width: 100%; height: 100%; border: 0; background: #fff; }
+  #python { height: 100%; }
+  #painel-entrada { width: 260px; flex: none; display: flex; flex-direction: column; border-left: 1px solid var(--borda); }
+  #painel-entrada label { padding: 9px 10px 6px; font-size: 11px; letter-spacing: .5px; }
+  #painel-entrada small { color: var(--apagado); letter-spacing: 0; }
+  #entrada { flex: 1; resize: none; border: 0; outline: 0; margin: 0 8px 8px; padding: 6px 8px;
+             background: var(--campo); color: var(--verde); font: var(--tam-saida, 13px)/1.45 var(--mono); border-radius: 3px;
+             border: 1px solid var(--borda); }
+  #entrada:focus { box-shadow: 0 0 0 1px var(--roxo); }
+
+  /* ---------- barra de status ---------- */
+  #status { grid-area: status; display: flex; align-items: center; gap: 16px; padding: 0 10px;
+            background: var(--roxo); color: #fff; font-size: 12px; white-space: nowrap; overflow: hidden; }
+  #status > span { flex: none; }
+  #status > .espaco { flex: 1; }
+
+  /* ---------- celular ---------- */
+  @media (max-width: 760px) {
+    #app { grid-template-columns: 44px 0 minmax(0, 1fr); }
+    body.com-lateral #app { grid-template-columns: 44px 200px minmax(0, 1fr); }
+    .credito, .rotulo, #st-cursor, #st-tempo, .marca span { display: none; }
+    #topo { gap: 2px; padding: 0 6px; }
+    #painel { flex-direction: column; }
+    #painel-entrada { width: auto; height: 90px; border-left: 0; border-top: 1px solid var(--borda); }
+    #status { gap: 10px; }
+  }
+</style>
+</head>
+<body>
+<a class="pular" href="#editor" id="pular">Pular para o editor</a>
+<div id="app">
+  <header id="topo">
+    <div class="marca">🎭 <span><b>Larp</b>Studios</span></div>
+    <button id="bt-rodar" title="Rodar (Ctrl+Enter)">▶ <span class="rotulo">Rodar</span></button>
+    <button id="bt-parar" title="Parar o programa (ex.: loop infinito)" disabled>■ <span class="rotulo">Parar</span></button>
+    <label class="chave" title="Personagens meme: Tung Tung Tung Sahur, Tralalero, Ballerina..."><input type="checkbox" id="op-brainrot"> 🪵 <span class="rotulo">Brainrot</span></label>
+    <label class="chave" title="Só aceita código bem no personagem (larp as python:)"><input type="checkbox" id="op-hardcore"> 💀 <span class="rotulo">Hardcore</span></label>
+    <span class="espaco"></span>
+    <button id="bt-abrir" title="Abrir um .larp do computador" aria-label="Abrir um arquivo .larp do computador">📂</button>
+    <button id="bt-baixar" title="Baixar este arquivo" aria-label="Baixar este arquivo">⬇</button>
+    <span class="credito">Feito por <b>ldb</b> e <b>rezenha</b></span>
+  </header>
+
+  <nav id="atividade" aria-label="Painéis laterais">
+    <button data-vista="arquivos" class="ativo" title="Explorador" aria-label="Explorador de arquivos">📁</button>
+    <button data-vista="config" title="Aparência e acessibilidade" aria-label="Aparência e acessibilidade">⚙️</button>
+    <button data-vista="ajuda" title="Ajuda" aria-label="Ajuda">❔</button>
+  </nav>
+
+  <aside id="lateral">
+    <section data-vista="arquivos">
+      <div class="titulo-lateral">EXPLORADOR</div>
+      <div class="grupo"><span>MEUS ARQUIVOS</span><button id="bt-novo" title="Novo arquivo" aria-label="Criar arquivo novo">＋</button></div>
+      <ul id="lista-meus"></ul>
+      <div class="grupo"><span>EXEMPLOS</span></div>
+      <ul id="lista-exemplos"></ul>
+    </section>
+    <section data-vista="config" hidden>
+      <div class="titulo-lateral">APARÊNCIA E ACESSIBILIDADE</div>
+      <div class="config">
+        <fieldset>
+          <legend>Tema</legend>
+          <label><input type="radio" name="tema" value="escuro"> 🌙 Escuro</label>
+          <label><input type="radio" name="tema" value="claro"> ☀️ Claro</label>
+          <label><input type="radio" name="tema" value="contraste"> ◐ Alto contraste</label>
+        </fieldset>
+        <fieldset>
+          <legend>Tamanho da letra</legend>
+          <div class="linha-botoes">
+            <button id="fonte-menos" aria-label="Diminuir a letra">A−</button>
+            <span id="fonte-valor" aria-live="polite">14 px</span>
+            <button id="fonte-mais" aria-label="Aumentar a letra">A+</button>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>Leitor de tela</legend>
+          <label><input type="checkbox" id="op-leitor"> Otimizar o editor para leitor de tela</label>
+          <p>No editor, <kbd>Tab</kbd> coloca espaços. Para o <kbd>Tab</kbd> sair do editor, aperte
+             <kbd>Ctrl+M</kbd> antes. <kbd>Alt+F1</kbd> abre a ajuda de acessibilidade do editor.</p>
+        </fieldset>
+        <button id="bt-dicas">💡 Mostrar as dicas de boas-vindas</button>
+      </div>
+    </section>
+    <section data-vista="ajuda" hidden>
+      <div class="titulo-lateral">AJUDA</div>
+      <div class="ajuda">
+        <h3>Atalhos</h3>
+        <p><kbd>Ctrl+Enter</kbd> roda o programa</p>
+        <p><kbd>F1</kbd> abre a lista de comandos do editor</p>
+        <p><kbd>Ctrl+M</kbd> faz o <kbd>Tab</kbd> sair do editor (teclado)</p>
+        <p><kbd>Ctrl+Espaço</kbd> sugestões e snippets: <code>oi</code> <code>fn</code> <code>for</code> <code>switch</code> <code>times</code> <code>pagina</code> <code>bfoi</code> <code>larp</code></p>
+        <p>Tudo é salvo sozinho neste navegador.</p>
+        <h3>Linguagens que a LARP finge ser</h3>
+        <p>Clique numa delas para colocar o exemplo no editor. Pode misturar à vontade!</p>
+        <div id="lista-linguagens"></div>
+        <h3>Elenco brainrot (ligue 🪵 Brainrot)</h3>
+        <ul id="lista-brainrot" class="lista-brainrot"></ul>
+        <h3>Painel de baixo</h3>
+        <p><b>SAÍDA</b>: o que o programa imprimiu (console.log, puts, print...).</p>
+        <p><b>PÁGINA</b>: se o .larp tiver HTML/CSS, a página aparece aqui. Ela abre sozinha quando existe.</p>
+        <p><b>PYTHON</b>: o código Python que a LARP gerou a partir do seu.</p>
+        <p>Deu erro? Clique no <b>📍 linha N</b> da SAÍDA e o editor pula até ela (a linha fica sublinhada em vermelho).</p>
+        <p><b>ENTRADA</b>: respostas para <code>input()</code> / <code>prompt()</code>, uma por linha, escritas antes de rodar.</p>
+        <h3>Como funciona</h3>
+        <p>Cada linha do seu .larp é traduzida para Python, e esse Python roda aqui mesmo no navegador (com o Pyodide). Nada vai para servidor nenhum.</p>
+        <h3>Créditos</h3>
+        <p>LarpStudios e LARP Script, feitos por <b>ldb</b> e <b>rezenha</b>. Licença MIT.</p>
+      </div>
+    </section>
+  </aside>
+
+  <main id="centro">
+    <div id="abas" aria-label="Arquivos abertos"></div>
+    <div class="boas-vindas" id="boas-vindas" role="dialog" aria-labelledby="bv-titulo" hidden>
+      <h2 id="bv-titulo">🎭 Bem-vindo ao LarpStudios!</h2>
+      Aqui você escreve em qualquer linguagem (até misturando) e roda na hora.
+      <ol>
+        <li>Escreva ou abra um exemplo no 📁 Explorador.</li>
+        <li>Aperte <b>▶ Rodar</b> ou <kbd>Ctrl+Enter</kbd>.</li>
+        <li>Veja o resultado embaixo: <b>SAÍDA</b>, <b>PÁGINA</b> (se tiver HTML) e <b>PYTHON</b>.</li>
+      </ol>
+      Deu erro? Clique no <b>📍</b> e o editor mostra a linha. Tema e letra maior ficam em ⚙️.
+      <div style="margin-top:12px"><button class="botao-forte" id="bv-ok">Bora! 🚀</button></div>
+    </div>
+    <div id="editor"></div>
+    <div id="divisor" title="Arraste para mudar o tamanho"></div>
+    <section id="painel">
+      <div id="painel-saida-area">
+        <div class="abas-painel" role="tablist" aria-label="Resultado do programa">
+          <button data-aba="saida" class="ativo" role="tab" aria-selected="true" aria-controls="saida" id="aba-saida">SAÍDA</button>
+          <button data-aba="pagina" role="tab" aria-selected="false" aria-controls="pagina" id="aba-pagina">PÁGINA</button>
+          <button data-aba="python" role="tab" aria-selected="false" aria-controls="python" id="aba-python">PYTHON</button>
+          <span class="espaco"></span>
+          <button id="bt-limpar" title="Limpar a saída" aria-label="Limpar a saída">🧹</button>
+        </div>
+        <div class="conteudo-painel">
+          <pre id="saida" data-aba="saida" role="log" aria-labelledby="aba-saida" tabindex="0"></pre>
+          <iframe id="pagina" data-aba="pagina" title="Página gerada pelo .larp" sandbox="allow-scripts allow-modals" hidden></iframe>
+          <div id="python" data-aba="python" role="tabpanel" aria-labelledby="aba-python" hidden></div>
+        </div>
+      </div>
+      <div id="painel-entrada">
+        <label for="entrada">ENTRADA <small>— uma resposta por linha</small></label>
+        <textarea id="entrada" spellcheck="false" placeholder="respostas para input() / prompt()"></textarea>
+      </div>
+    </section>
+  </main>
+
+  <footer id="status">
+    <span id="st-python" role="status" aria-live="polite">⏳ Carregando o Python…</span>
+    <span id="st-tempo"></span>
+    <span id="aura" hidden title="Aura do brainrot: +67 por programa certo, -1000 por erro"></span>
+    <span class="espaco"></span>
+    <span id="st-personagem" title="Que linguagem esta linha parece"></span>
+    <span id="st-cursor">Ln 1, Col 1</span>
+    <span>🎭 LARP Script</span>
+  </footer>
+</div>
+<input type="file" id="arquivo" accept=".larp,.txt" hidden>
+
+<!-- O Python roda num "Web Worker": um ajudante em segundo plano. Assim a página não trava
+     com um loop infinito, e o botão Parar pode simplesmente desligar o ajudante. -->
+<script type="text/plain" id="codigo-worker">
+importScripts("https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js");
+let py = null, entradas = [];
+
+function saida(tipo) {
+  const dec = new TextDecoder();
+  return { isatty: true, write(b) { postMessage({ tipo, s: dec.decode(b, { stream: true }) }); return b.length; } };
+}
+
+self.onmessage = async (ev) => {
+  const m = ev.data;
+  if (m.tipo === "iniciar") {
+    try {
+      py = await loadPyodide();
+      py.setStdout(saida("out"));
+      py.setStderr(saida("err"));
+      py.setStdin({ stdin() {
+        if (!entradas.length) { postMessage({ tipo: "faltou" }); return null; }
+        const linha = entradas.shift();
+        postMessage({ tipo: "eco", s: linha });
+        return linha + "\n";
+      } });
+      for (const [nome, codigo] of Object.entries(m.arquivos)) py.FS.writeFile(nome, codigo);
+      py.runPython("import sys, os; sys.path.insert(0, os.getcwd()); import ponte");
+      postMessage({ tipo: "pronto" });
+    } catch (e) {
+      postMessage({ tipo: "falhou", s: String(e) });
+    }
+  } else if (m.tipo === "personagem") {
+    try { postMessage({ tipo: "personagem", nome: py.pyimport("ponte").personagem(m.linha) }); } catch (e) {}
+  } else if (m.tipo === "rodar") {
+    const txt = m.entrada.replace(/\r/g, "").replace(/\n+$/, "");
+    entradas = txt ? txt.split("\n") : [];
+    try {
+      const ponte = py.pyimport("ponte");
+      const r = ponte.traduzir(m.fonte, m.brainrot, m.hardcore);
+      if (r) {
+        const [codigo, html] = r.toJs();
+        r.destroy();
+        postMessage({ tipo: "py", codigo, html });
+        ponte.rodar(codigo, m.fonte, m.brainrot);
+      }
+    } catch (e) {
+      postMessage({ tipo: "err", s: "💥 " + e + "\n" });
+    }
+    postMessage({ tipo: "fim" });
+  }
+};
+</script>
+
+<script>const DADOS = {"arquivos": {"larp.py": "#!/usr/bin/env python3\n\"\"\"\nLARP Script 🎭 - a linguagem que FINGE ser todas as outras.\n\nUso:\n  py larp.py arquivo.larp [--brainrot] [--hardcore] [--verbose] [--py]\n  py larp.py                      (sem arquivo: modo interativo)\n\n  --brainrot   liga os personagens meme (Tung Tung Tung Sahur e cia.)\n  --hardcore   só aceita código \"bem no personagem\" (use 'larp as python:' para trocar)\n  --verbose    mostra o personagem e o Python gerado de cada linha\n  --py         só mostra o Python gerado, sem rodar (ótimo para aprender)\n  --tempo=5    para o programa depois de 5 segundos (bom contra loop infinito)\n\nComo funciona: cada linha do seu .larp é traduzida para Python (o ator \"entra no\npersonagem\") e depois executada. Os arquivos larp_tradutor.py e larp_runtime.py\nprecisam ficar na mesma pasta deste.\n\"\"\"\nimport builtins\nimport difflib\nimport os\nimport re\nimport sys\n\nimport larp_runtime as rt\nfrom larp_tradutor import HTML, MAPA, LarpErro, traduzir_programa\n\nSAHUR = \"🪵 TUNG TUNG TUNG TUNG TUNG TUNG TUNG TUNG TUNG SAHUR!\"\n\n\ndef onde(e, fonte, arq):\n    \"\"\"Descobre em qual linha do SEU .larp o erro aconteceu.\"\"\"\n    n = None\n    tb = e.__traceback__\n    while tb:\n        if tb.tb_frame.f_code.co_filename == arq:\n            n = tb.tb_lineno\n        tb = tb.tb_next\n    if isinstance(e, SyntaxError):\n        n = e.lineno\n    if n and 0 \u003c n \u003c= len(MAPA):\n        o = MAPA[n - 1]\n        linhas = fonte.splitlines()\n        trecho = linhas[o - 1].strip() if 0 \u003c o \u003c= len(linhas) else \"\"\n        return f\"📍 linha {o} do seu .larp: {trecho}\"\n    return \"\"\n\n\ndef parecido(nome, opcoes):\n    \"\"\"Nome mais parecido (para a dica 'você quis dizer...?').\"\"\"\n    if not nome:\n        return None\n    achados = difflib.get_close_matches(nome, [o for o in opcoes if not o.startswith(\"_\")], n=1, cutoff=0.7)\n    return achados[0] if achados else None\n\n\nDICAS_SINTAXE = [\n    (\"unterminated string\", \"faltou fechar as aspas de um texto\"),\n    (\"unterminated triple-quoted\", 'faltou fechar um texto de várias linhas (\"\"\")'),\n    (\"was never closed\", \"faltou fechar um ( [ ou {\"),\n    (\"unmatched\", \"tem um ) ] ou } sobrando\"),\n    (\"expected ':'\", \"faltou o : no fim do if/for/def (ou a { do bloco)\"),\n    (\"expected an indented block\", \"o bloco ficou vazio ou sem recuo (indentação)\"),\n    (\"unindent does not match\", \"o recuo (espaços no começo) não bate com as linhas de cima\"),\n]\n\n\ndef piada(e, brainrot, ns=None):\n    \"\"\"Mensagem de erro no personagem (com dica, quando dá).\"\"\"\n    msg = piada_base(e, brainrot, ns or {})\n    if brainrot:\n        msg += \"\\n   📉 -1000 aura\"\n    return msg\n\n\ndef piada_base(e, brainrot, ns):\n    if isinstance(e, SyntaxError):\n        dica = next((d for chave, d in DICAS_SINTAXE if chave in (e.msg or \"\")), \"confira os { }, os : e a indentação\")\n        return (\"🎭 Nem o Java reconheceu isso (e olha que ele aceita qualquer coisa com 40 linhas \"\n                f\"de boilerplate).\\n   Detalhe: {e.msg}\\n   Dica: {dica}. Para ver o Python gerado, rode com --py.\")\n    if isinstance(e, UnboundLocalError):\n        nome = getattr(e, \"name\", None) or (re.findall(r\"'(\\w+)'\", str(e)) or [\"?\"])[0]\n        return (f\"🎭 '{nome}' foi usada dentro da função antes de ganhar um valor.\\n\"\n                \"   Dica: se ela é de fora da função, passe como argumento (ou use 'global').\")\n    if isinstance(e, NameError):\n        nome = getattr(e, \"name\", None) or (re.findall(r\"'(\\w+)'\", str(e)) or [\"?\"])[0]\n        if brainrot:\n            msg = f\"🌴 Brr Brr Patapim se perdeu na floresta procurando: {nome}\"\n        else:\n            msg = f\"🎭 O JavaScript diria 'undefined' e seguiria em frente. Eu não: '{nome}' não existe.\"\n        quis = parecido(nome, list(ns) + dir(builtins))\n        if quis:\n            quem = \"🟡 Verity, que sabe um milhão de coisas, acha que é\" if brainrot else \"   Você quis dizer\"\n            msg += f\"\\n{quem} '{quis}'?\"\n        return msg\n    if isinstance(e, ZeroDivisionError):\n        if brainrot:\n            return \"☕🗡️ O Cappuccino Assassino tentou cortar um número em zero pedaços. Nem ele consegue.\"\n        return \"🎭 Dividir por zero? Nem o Rust deixa, e ele deixa quase nada.\"\n    if isinstance(e, TypeError):\n        t = str(e)\n        if \"not callable\" in t:\n            dica = \"você colocou ( ) depois de algo que não é função\"\n        elif \"missing\" in t and \"argument\" in t:\n            dica = \"faltou passar argumento para a função\"\n        elif \"positional argument\" in t and \"given\" in t:\n            dica = \"a função recebeu argumentos demais\"\n        elif \"not iterable\" in t:\n            dica = \"o for precisa de uma lista, texto ou range, não de um número\"\n        elif \"not subscriptable\" in t:\n            dica = \"usou [ ] em algo que não é lista, texto nem dicionário\"\n        else:\n            dica = \"\"\n        dica = f\"\\n   Dica: {dica}.\" if dica else \"\"\n        if brainrot:\n            return f\"🦐🐱 Trippi Troppi (meio camarão, meio gato) misturou os tipos: {e}{dica}\"\n        return f\"🎭 O Python deu de ombros 🤷 e o Rust chorou no compilador 😭: {e}{dica}\"\n    if isinstance(e, IndexError):\n        if brainrot:\n            return \"🐒🍌 Chimpanzini Bananini procurou banana numa posição que não existe na lista.\"\n        return (\"🎭 O C deixaria você ler lixo da memória. Eu aviso: essa posição não existe na lista.\\n\"\n                \"   Dica: as posições começam em 0, então a última é tamanho - 1.\")\n    if isinstance(e, KeyError):\n        return f\"🎭 Procurei a chave {e} no dicionário e só achei vento.\"\n    if isinstance(e, AttributeError):\n        msg = f\"🎭 Esse objeto não sabe fazer isso (nem o Ruby, que sabe fazer tudo): {e}\"\n        obj, nome = getattr(e, \"obj\", None), getattr(e, \"name\", None)\n        quis = parecido(nome, dir(obj)) if obj is not None else None\n        if quis:\n            msg += f\"\\n   Você quis dizer '.{quis}'?\"\n        return msg\n    if isinstance(e, ModuleNotFoundError):\n        return (f\"🎭 O módulo '{e.name}' não veio para o elenco.\\n\"\n                \"   Aqui só a biblioteca padrão do Python sobe no palco (math, random, json...).\")\n    if isinstance(e, ValueError):\n        return f\"🎭 Valor estranho, estranho valor: {e}\"\n    if isinstance(e, FileNotFoundError):\n        return f\"🎭 O arquivo fugiu do elenco: {e}\"\n    if isinstance(e, RecursionError):\n        if brainrot:\n            return \"🐄🪐 A função entrou em órbita em volta de si mesma, igual La Vaca Saturno Saturnita.\"\n        return \"🎭 Recursão infinita! A função chamou a si mesma até o palco desabar.\"\n    if isinstance(e, EOFError):\n        return \"🎭 O programa pediu uma entrada (input/prompt) e ninguém respondeu.\"\n    if isinstance(e, AssertionError):\n        return \"🎭 A afirmação (assert) era mentira\" + (f\": {e}\" if str(e) else \".\")\n    if isinstance(e, OverflowError):\n        return \"🎭 Número grande demais até para o Python (e olha que ele aguenta muito).\"\n    if type(e) is Exception:                      # throw new Error(\"...\") / raise Exception(\"...\")\n        if brainrot:\n            return f\"🪿✈️ Bombombini Gusini jogou o erro lá de cima: {e}\"\n        return f\"🎭 O seu programa gritou um erro de propósito (throw): {e}\"\n    return f\"💥 {type(e).__name__}: {e}\"\n\n\ndef executar(py, ns, arq, fonte, brainrot, tempo=0):\n    \"\"\"Roda o Python gerado. Devolve True se deu tudo certo.\n    tempo > 0: depois de tantos segundos, interrompe (para loops infinitos).\"\"\"\n    estourou, relogio = [], None\n    if tempo:\n        import _thread\n        import threading\n\n        def alarme():\n            estourou.append(True)\n            _thread.interrupt_main()          # é como se alguém apertasse Ctrl+C\n\n        relogio = threading.Timer(tempo, alarme)\n        relogio.daemon = True\n        relogio.start()\n    try:\n        exec(compile(py, arq, \"exec\"), ns)\n        if brainrot:\n            print(SAHUR)\n        return True\n    except KeyboardInterrupt:\n        if estourou and brainrot:\n            print(f\"\\n🦈 O Tralalero ficou {tempo:g} s correndo em círculos e eu fechei a cortina. Loop infinito?\")\n        elif estourou:\n            print(f\"\\n⏰ O programa passou de {tempo:g} s e eu fechei a cortina. Será um loop infinito?\")\n        else:\n            print(\"\\n🎭 Cortina fechada pelo usuário (Ctrl+C).\")\n    except BaseException as e:      # noqa: BLE001 - queremos mostrar qualquer erro bonito\n        if isinstance(e, SystemExit):\n            raise\n        print(piada(e, brainrot, ns))\n        local = onde(e, fonte, arq)\n        if local:\n            print(local)\n    finally:\n        if relogio:\n            relogio.cancel()\n    return False\n\n\ndef repl(brainrot, hardcore):\n    print(\"🎭 LARP Script interativa. Digite sair() para sair. \"\n          \"Em blocos ({ ou :) termine com uma linha vazia.\")\n    ns = rt.criar_namespace()\n    while True:\n        try:\n            linha = input(\"larp> \")\n        except (EOFError, KeyboardInterrupt):\n            print()\n            return\n        if linha.strip() in (\"sair\", \"sair()\", \"exit\", \"exit()\", \"quit\", \"quit()\"):\n            return\n        buf = [linha]\n        if linha.rstrip().endswith((\":\", \"{\")) or linha.startswith((\" \", \"\\t\")):\n            while True:\n                try:\n                    mais = input(\"....> \")\n                except (EOFError, KeyboardInterrupt):\n                    print()\n                    break\n                if not mais.strip():\n                    break\n                buf.append(mais)\n        fonte = \"\\n\".join(buf)\n        try:\n            py = traduzir_programa(fonte, brainrot, False, hardcore)\n        except LarpErro as e:\n            print(f\"🎭 {e}\")\n            continue\n        if HTML:\n            print(\"🌐 HTML só funciona dentro de um arquivo .larp. Salve e rode com: larp arquivo.larp\")\n        try:                                    # expressão solta? mostra o valor, como o Python faz\n            valor = eval(compile(py, \"\u003clarp>\", \"eval\"), ns)\n            if valor is not None:\n                print(repr(valor))\n            continue\n        except SyntaxError:\n            pass\n        except BaseException as e:              # noqa: BLE001\n            print(piada(e, brainrot, ns))\n            continue\n        executar(py, ns, \"\u003clarp>\", fonte, False)\n\n\ndef main():\n    try:\n        sys.stdout.reconfigure(encoding=\"utf-8\")\n    except Exception:\n        pass\n    args = sys.argv[1:]\n    flags = {a for a in args if a.startswith(\"--\")}\n    arquivos = [a for a in args if not a.startswith(\"--\")]\n    brainrot, hardcore = \"--brainrot\" in flags, \"--hardcore\" in flags\n    rt.BRAINROT, rt.VERBOSE = brainrot, \"--verbose\" in flags\n\n    if \"--help\" in flags or \"-h\" in args:\n        print(__doc__)\n        return\n    if not arquivos:\n        repl(brainrot, hardcore)\n        return\n\n    arq = arquivos[0]\n    if not os.path.exists(arq):\n        print(f\"🎭 Não achei o arquivo '{arq}'. Ele está na pasta onde você abriu o terminal?\")\n        return\n    with open(arq, encoding=\"utf-8-sig\") as f:   # -sig: ignora o BOM que alguns editores colocam\n        fonte = f.read()\n    tempo = 0\n    for a in flags:\n        if a.startswith(\"--tempo\"):\n            try:\n                tempo = float(a.partition(\"=\")[2] or 10)\n            except ValueError:\n                print(\"🎭 Use assim: --tempo=5 (em segundos)\")\n                return\n\n    try:\n        py = traduzir_programa(fonte, brainrot, \"--verbose\" in flags, hardcore)\n    except LarpErro as e:\n        print(f\"🎭 {e}\")\n        if e.linha:\n            texto = fonte.splitlines()[e.linha - 1].strip()\n            print(f\"📍 linha {e.linha} do seu .larp: {texto}\")\n        return\n    if \"--py\" in flags:\n        print(py)\n        return\n\n    executar(py, rt.criar_namespace(), arq, fonte, brainrot, tempo)\n    if HTML:\n        rt.salvar_html(HTML, arq, brainrot)\n\n\nif __name__ == \"__main__\":\n    main()\n", "larp_tradutor.py": "\"\"\"\nTradutor da LARP Script.\n\nCada linha do .larp é traduzida para Python. Para os erros mostrarem a linha certa\ndo SEU arquivo, guardamos em MAPA de qual linha do .larp cada linha do Python veio.\n\"\"\"\nimport re\n\n\nclass LarpErro(Exception):\n    \"\"\"Erro da própria LARP Script (ex.: modo hardcore). Leva o número da linha.\"\"\"\n\n    def __init__(self, msg, linha=None):\n        super().__init__(msg)\n        self.linha = linha\n\n\nHTML = []   # linhas de HTML/CSS achadas no .larp (viram uma página no final)\nMAPA = []   # MAPA[i] = linha do .larp que gerou a linha i+1 do Python gerado\n\nTIPOS = {\"int\", \"string\", \"String\", \"double\", \"float\", \"bool\", \"boolean\", \"long\", \"char\",\n         \"void\", \"var\", \"auto\", \"i32\", \"i64\", \"u32\", \"u64\", \"f32\", \"f64\", \"usize\", \"u8\",\n         \"str\", \"number\", \"any\", \"Int\", \"Double\", \"Boolean\", \"Long\", \"Float\", \"Any\"}\nCONTROLE = {\"if\", \"while\", \"for\", \"switch\", \"catch\", \"else\", \"elif\", \"try\", \"finally\",\n            \"with\", \"except\", \"elsif\", \"unless\", \"until\", \"loop\", \"begin\", \"rescue\", \"ensure\",\n            \"foreach\", \"match\", \"elseif\"}\nDECL = (r\"(?:let|const|var|val|local|mut|int|string|String|double|float|bool|boolean|long|\"\n        r\"char|auto|Int|Double|Boolean)\")\nMODS = r\"(?:(?:public|private|protected|static|async|export|final|override|abstract|open|suspend)\\s+)*\"\n\n# Cabeçalhos de outras linguagens -> Python\nCABECAS = [\n    (r\"^else\\s+if\\b\", \"elif\"), (r\"^(?:elsif|elseif)\\b\", \"elif\"), (r\"^senao\\s+se\\b\", \"elif\"),\n    (r\"^se\\b\", \"if\"), (r\"^senao\\b\", \"else\"), (r\"^enquanto\\b\", \"while\"),\n    (r\"^unless\\b\", \"if not\"), (r\"^until\\b\", \"while not\"),\n    (r\"^loop$\", \"while True\"), (r\"^begin$\", \"try\"), (r\"^ensure$\", \"finally\"),\n]\n\n# Trocas feitas na linha com as strings \"escondidas\" (ver mascarar)\nTROCAS = [\n    (r\"\\bConsole\\.ReadLine\\(\\)\", \"input()\"),\n    (r\"\\bprintln!\\s*\\((?=\\s*\\x00\\d+\\x00\\s*,)\", \"_println(\"),       # Rust: println!(\"{}\", x)\n    (r\"\\bformat!\\s*\\(\", \"_rustfmt(\"),\n    (r\"\\b(?:System\\.out\\.printf|fmt\\.Printf|printf)\\b\", \"_printf\"),\n    (r\"\\b(?:String\\.format|fmt\\.Sprintf|sprintf)\\b\", \"_sprintf\"),\n    (r\"console\\.(?:log|error|warn|info|debug)|System\\.(?:out|err)\\.print(?:ln)?|fmt\\.Println|\"\n     r\"\\bConsole\\.Write(?:Line)?|\\bIO\\.puts|\\bputStrLn\\b|\"\n     r\"fmt\\.Print\\b|println!|print!|\\bputs\\b|\\becho\\b|\\bescreva\\b|\\bprintln\\b|\\bwriteln\\b\", \"print\"),\n    (r\"\\bnew\\s+(?=[A-Z])\", \"\"), (r\"(?\u003c=\\w)\\.new\\(\", \"(\"),\n    (r\"===\", \"==\"), (r\"!==\", \"!=\"), (r\"~=\", \"!=\"),\n    (r\"\\bvec!\\s*(?=\\[)\", \"\"), (r\"\\b(\\w+)!(?=\\()\", r\"\\1\"),\n    (r\"&&\", \" and \"), (r\"\\|\\|\", \" or \"), (r\"!(?!=)\", \" not \"),\n    (r\"\\b(?:true|verdadeiro)\\b\", \"True\"), (r\"\\b(?:false|falso)\\b\", \"False\"),\n    (r\"\\b(?:null|nil|undefined|nulo)\\b\", \"None\"),\n    (r\"\\bthis\\b\", \"self\"), (r\"\\bretorne\\b\", \"return\"), (r\"\\bthrow\\b\", \"raise\"),\n    (r\"\\bError\\b\", \"Exception\"),\n    (r\"(?\u003c=[\\s(,=+\\-*/{])@(?=[A-Za-z_])\", \"self.\"),\n    (r\"\\$(?=\\x00)\", \"f\"), (r\"\\$(?=\\w)\", \"\"),\n    (r\"(?\u003c=\\w)->(?=\\w)\", \".\"), (r\"(?\u003c=\\w)::(?=\\w)\", \".\"),\n    (r\"(?\u003c=\\s)\\.(?=\\s)\", \"+\"),\n    (r\"(\\w+)\\.\\.=(\\w+)\", r\"range(\\1, \\2 + 1)\"), (r\"(\\w+)\\.\\.(\\w+)\", r\"range(\\1, \\2)\"),\n    (r\"\\.(?:iter|unwrap|clone)\\(\\)\", \"\"),\n    (r\"([A-Za-z_][\\w.]*)\\.(?:toString|to_string)\\(\\)\", r\"str(\\1)\"),\n    (r\"([A-Za-z_][\\w.]*(?:\\[[^\\]]*\\])?)\\.(?:length(?![\\w(])|length\\(\\)|size\\(\\))\", r\"len(\\1)\"),\n    (r\"\\.push(?:_back)?\\(\", \".append(\"),\n    (r\"\\.toUpperCase\\(\\)\", \".upper()\"), (r\"\\.toLowerCase\\(\\)\", \".lower()\"),\n    (r\"\\.trim\\(\\)\", \".strip()\"),\n    (r\"\\.(?:includes|contains)\\(\", \".__contains__(\"), (r\"\\.indexOf\\(\", \".index(\"),\n    (r\"\\.equals\\(\", \".__eq__(\"), (r\"\\.charAt\\(\", \".__getitem__(\"),\n    (r\"\\.startsWith\\(\", \".startswith(\"), (r\"\\.endsWith\\(\", \".endswith(\"),\n    (r\"\\bgets\\b(?!\\s*\\()\", \"input()\"),\n    (r\"\\btypeof\\s+(\\w+)\", r\"type(\\1).__name__\"),\n    (r\"(?\u003c=\\w)\u003c[\\w,\\s?]*>(?=\\()\", \"\"),\n    (r\"\\(([^()]*)\\)\\s*(?:=>|->)\\s*(.+)$\", r\"lambda \\1: \\2\"),\n    (r\"\\b(\\w+)\\s*(?:=>|->)\\s*(.+)$\", r\"lambda \\1: \\2\"),\n]\n\nDEF = (MODS + r\"(?:function|fn|func|funcao|fun|def)\\s+(\\w+)\\s*(?:\\((.*)\\))?\\s*\"\n       r\"(?::\\s*[\\w\u003c>\\[\\]?]+)?\\s*(?:->\\s*)?[\\w\u003c>\\[\\]&]*$\")\nMETODO = MODS + r\"(?:[\\w\u003c>\\[\\]]+\\s+)?(\\w+)\\s*\\((.*)\\)\\s*$\"\nCLASSE = re.compile(MODS + r\"(?:data\\s+)?class\\s+(\\w+)\\s*(?:extends\\s+(\\w+)|\u003c\\s*(\\w+)|\\((.*)\\))?\"\n                    r\"(?:\\s+implements\\s+[\\w, ]+)?\\s*$\")\n\n# Como o interpretador adivinha o \"personagem\" de cada linha (para --verbose e --hardcore)\nPERSONAGENS = [\n    (\"Português\", r\"\\b(funcao|escreva|enquanto|senao|retorne|verdadeiro|falso|nulo)\\b|^se\\b\"),\n    (\"C++\", r\"\\bcout\\b|\\bcin\\b|std::\"),\n    (\"C#\", r\"\\bConsole\\.(?:Write|ReadLine)\"),\n    (\"Haskell\", r\"\\bputStrLn\\b\"),\n    (\"Elixir\", r\"\\bIO\\.puts\\b\"),\n    (\"Rust\", r\"\\bfn\\b|println!|\\blet\\b|::\"),\n    (\"Go\", r\"\\bfunc\\b|fmt\\.|:=|\\bvar\\b\"),\n    (\"Kotlin\", r\"\\bfun\\b|\\bval\\b|\\bvar\\b|\\blet\\b\"),\n    (\"JavaScript\", r\"console\\.|\\bfunction\\b|=>|\\b(let|const|var)\\b|===|\\bundefined\\b\"),\n    (\"Java\", r\"System\\.|\\bpublic\\b|\\bnew\\s+[A-Z]\"),\n    (\"Ruby\", r\"\\bputs\\b|\\belsif\\b|\\bnil\\b|\\bunless\\b|\\brescue\\b|\\.(each|times)\\b|\\bdo\\s*(\\|.*\\|)?$\"),\n    (\"PHP\", r\"\\becho\\b|\\$\\w\"),\n    (\"Lua\", r\"\\bthen\\b|\\blocal\\b|~=\"),\n    (\"Python\", r\"^(def|elif|lambda|from|import)\\b|\\b(None|True|False)\\b\"),\n]\nPERSONAGEM_DE = {\n    \"python\": \"Python\", \"py\": \"Python\", \"javascript\": \"JavaScript\", \"js\": \"JavaScript\",\n    \"typescript\": \"JavaScript\", \"ts\": \"JavaScript\", \"node\": \"JavaScript\", \"java\": \"Java\",\n    \"kotlin\": \"Kotlin\", \"kt\": \"Kotlin\", \"swift\": \"Kotlin\", \"rust\": \"Rust\", \"rs\": \"Rust\",\n    \"go\": \"Go\", \"golang\": \"Go\", \"ruby\": \"Ruby\", \"rb\": \"Ruby\", \"php\": \"PHP\",\n    \"c++\": \"C++\", \"cpp\": \"C++\", \"c\": \"C++\", \"c#\": \"C#\", \"csharp\": \"C#\", \"cs\": \"C#\", \"lua\": \"Lua\",\n    \"haskell\": \"Haskell\", \"hs\": \"Haskell\", \"elixir\": \"Elixir\", \"ex\": \"Elixir\",\n    \"portugues\": \"Português\", \"português\": \"Português\", \"pt\": \"Português\",\n}\nBRAINROT_NOMES = {\"tungtung\", \"tralalero\", \"bombardiro\", \"ballerina\", \"brrbrr\", \"patapim\", \"sahur\",\n                  \"lirili\", \"bombombini\", \"trippi\", \"assassino\", \"chimpanzini\", \"vaca\", \"boneca\",\n                  \"verity\", \"sixseven\", \"67\"}\n\nSTR = re.compile(r'(\"(?:\\\\.|[^\"\\\\])*\"|\\'(?:\\\\.|[^\\'\\\\])*\\'|`[^`]*`)')\n\n\ndef personagens_da_linha(s):\n    \"\"\"Lista de personagens que podem ter escrito essa linha (vazia = linha neutra).\"\"\"\n    return [nome for nome, p in PERSONAGENS if re.search(p, s)]\n\n\ndef mascarar(c):\n    \"\"\"Troca cada string por um marcador, para as trocas não mexerem dentro delas.\"\"\"\n    guardadas = []\n\n    def guarda(m):\n        guardadas.append(m.group(0))\n        return f\"\\x00{len(guardadas) - 1}\\x00\"\n\n    return STR.sub(guarda, c), guardadas\n\n\ndef desmascarar(c, guardadas):\n    \"\"\"Devolve as strings exatamente como estavam (sem converter nada).\"\"\"\n    return re.sub(r\"\\x00(\\d+)\\x00\", lambda m: guardadas[int(m.group(1))], c)\n\n\ndef profundidade(c):\n    \"\"\"Quantos ( [ { ficaram abertos na linha (com as strings já escondidas).\"\"\"\n    return sum(c.count(x) for x in \"([{\") - sum(c.count(x) for x in \")]}\")\n\n\n# Generics: List\u003cString>, HashMap\u003cK, V>, fn maior\u003cT: PartialOrd>, Caixa\u003cList\u003cInteger>>\n_ITEM = r\"[\\w?.]+(?:\\[\\])*(?:\\s*:\\s*\\w+(?:\\s*\\+\\s*\\w+)*)?\"\n_LISTA = rf\"(?:{_ITEM}(?:\\s*,\\s*{_ITEM})*)?\"\n_ITEM2 = rf\"{_ITEM}(?:\u003c{_LISTA}>)?\"\nGENERICO = re.compile(rf\"(?\u003c=\\w)\u003c(?:{_ITEM2}(?:\\s*,\\s*{_ITEM2})*)?>(?=\\s*[(\\[{{=,)>]|\\s+\\w|\\s*$)\")\nGENERICO_METODO = re.compile(rf\"\\b(public|private|protected|static|final|fun|function)\\s+\u003c{_LISTA}>\\s*\")\n\n\ndef tirar_generics(c):\n    \"\"\"Generics não existem no Python: 'List\u003cString> x' vira 'List x', 'f\u003cT>(a)' vira 'f(a)'.\"\"\"\n    return GENERICO.sub(\"\", GENERICO_METODO.sub(r\"\\1 \", c))\n\n\ndef fecha(c, i):\n    \"\"\"Posição da } que fecha a { da posição i (ou None).\"\"\"\n    n = 0\n    for j in range(i, len(c)):\n        n += (c[j] == \"{\") - (c[j] == \"}\")\n        if n == 0:\n            return j\n    return None\n\n\ndef objetos(c):\n    \"\"\"Objetos do JavaScript/Ruby: {nome: \"Ana\"} vira _O({\"nome\": \"Ana\"}), um dicionário que\n    também aceita obj.nome. Só mexe em { } usados como valor (depois de = ( [ , : ou return).\"\"\"\n    saida, i = [], 0\n    while i \u003c len(c):\n        fim = fecha(c, i) if c[i] == \"{\" else None\n        antes = \"\".join(saida).rstrip()\n        valor = not antes or antes[-1] in \"=([,:?\" or re.search(r\"\\breturn$\", antes)\n        if fim is None or not valor:\n            saida.append(c[i])\n            i += 1\n            continue\n        miolo = objetos(c[i + 1:fim])\n        if not miolo.strip():\n            saida.append(\"_O()\")\n        elif \":\" in miolo and not re.search(r\"\\bfor\\b\", miolo):    # {k: v for ...} é do Python\n            miolo = re.sub(r\"(^|,)(\\s*)\\$?([A-Za-z_]\\w*)(\\s*):(?!:)\", r'\\1\\2\"\\3\"\\4:', miolo)\n            saida.append(\"_O({\" + miolo + \"})\")\n        else:                                                      # {1, 2} é um set do Python\n            saida.append(\"{\" + miolo + \"}\")\n        i = fim + 1\n    return \"\".join(saida)\n\n\ndef para_fstring(texto):\n    \"\"\"${x} (JavaScript) e #{x} (Ruby) viram {x}, traduzindo o que está dentro das chaves.\"\"\"\n    def interpola(m):\n        mas, g = mascarar(\" \" + m.group(1))          # o espaço deixa o @ do Ruby ser reconhecido\n        return \"{\" + restaurar(trocar(mas), g, envolver=False).strip() + \"}\"\n\n    return re.sub(r\"[$#]\\{([^}]*)\\}\", interpola, texto)\n\n\ndef restaurar(c, guardadas, envolver=True):\n    \"\"\"Devolve as strings. Crase vira f-string, \"#{x}\" (Ruby) também, e as demais\n    viram _S(\"...\") para o + com número funcionar como no JavaScript/Java.\"\"\"\n    def converte(p):\n        if p.startswith(\"`\"):\n            return 'f\"' + para_fstring(p[1:-1].replace('\"', '\\\\\"')) + '\"'\n        if p.startswith('\"') and \"#{\" in p:\n            return \"f\" + para_fstring(p)\n        return p\n\n    def volta(m):\n        # \"a\" \"b\" (strings coladas, como no C e no Python) viram uma string só\n        partes = [guardadas[int(x)] for x in re.findall(r\"\\x00(\\d+)\\x00\", m.group(0))]\n        p = \" \".join(converte(x) for x in partes)\n        antes = m.string[m.start() - 1] if m.start() else \"\"\n        if envolver and not (antes.isalnum() or antes == \"_\") and not partes[0].startswith(\"`\") \\\n                and not (len(partes) == 1 and p.startswith(\"f\")):\n            return f\"_S({p})\"\n        return p\n\n    return re.sub(r\"\\x00\\d+\\x00(?:\\s*\\x00\\d+\\x00)*\", volta, c)\n\n\ndef balanceado(s):\n    \"\"\"True se o '(' do começo só fecha no último caractere.\"\"\"\n    if not (s.startswith(\"(\") and s.endswith(\")\")):\n        return False\n    n = 0\n    for i, c in enumerate(s):\n        n += (c == \"(\") - (c == \")\")\n        if n == 0 and i \u003c len(s) - 1:\n            return False\n    return True\n\n\ndef eh_tipo(t):\n    return t in TIPOS or t[:1].isupper() or \"\u003c\" in t or \"[\" in t\n\n\ndef limpar_args(a):\n    \"\"\"Tira tipos e enfeites: 'int a' (Java), 'b int' (Go), 'a: i32' (Rust), '$x' (PHP).\"\"\"\n    saida = []\n    for arg in [x.strip() for x in a.split(\",\") if x.strip()]:\n        padrao = \"\"\n        if \"=\" in arg:\n            arg, padrao = [x.strip() for x in arg.split(\"=\", 1)]\n            padrao = \"=\" + padrao\n        arg = arg.replace(\"$\", \"\").replace(\"&\", \"\").replace(\"mut \", \"\").replace(\"...\", \"*\").strip()\n        if \":\" in arg:\n            arg = arg.split(\":\")[0].strip()\n        else:\n            p = arg.split()\n            if len(p) == 2:\n                arg = p[1] if eh_tipo(p[0]) else p[0]\n            elif len(p) > 2:\n                arg = p[-1]\n        saida.append(arg + padrao)\n    return \", \".join(saida)\n\n\ndef ternario(c):\n    \"\"\"a ? b : c  ->  b if a else c  (só nos formatos mais comuns).\"\"\"\n    m = re.match(r\"^(\\s*(?:return\\s+|print\\(|[\\w.\\[\\]]+\\s*=\\s*))(.+?)\\s\\?\\s(.+?)\\s:\\s(.+?)(\\)?)$\", c)\n    if m:\n        pre, cond, a, b, fim = m.groups()\n        return f\"{pre}{a} if {cond} else {b}{fim}\"\n    return c\n\n\ndef trocar(c):\n    c = objetos(c)\n    for p, n in TROCAS:\n        c = re.sub(p, n, c)\n    return ternario(c)\n\n\ndef traduzir(rest, abre, fundo=False):\n    \"\"\"Traduz UMA linha para Python. Devolve (linha_python, tipo_de_bloco).\"\"\"\n    r = rest.strip().rstrip(\";\").strip()\n    dp = r.endswith(\":\")\n    if dp:\n        r = r[:-1].rstrip()\n    nativo = bool(re.match(r\"^(case|match)\\b\", r))     # match/case do próprio Python\n    mas, g = mascarar(r)\n    r = desmascarar(tirar_generics(mas), g)\n    # Java / C++: int[] nums = {1, 2, 3};   int nums[] = {1, 2};   ->  nums = [1, 2, 3]\n    r = re.sub(rf\"^(?:{DECL}|[A-Z]\\w*)\\s*\\[\\]\\s+(\\w+)\\s*=\\s*\\{{(.*)\\}}$\", r\"\\1 = [\\2]\", r)\n    r = re.sub(rf\"^(?:{DECL}|[A-Z]\\w*)\\s+(\\w+)\\s*\\[\\d*\\]\\s*=\\s*\\{{(.*)\\}}$\", r\"\\1 = [\\2]\", r)\n\n    # Ruby: blocos com 'do'\n    m = re.match(r\"^(.+?)\\.times\\s+do(?:\\s*\\|\\s*(\\w+)\\s*\\|)?$\", r)\n    if m:\n        return f\"for {m.group(2) or '_'} in range({m.group(1)}):\", \"loop\"\n    m = re.match(r\"^(.+?)\\.each\\s+do\\s*\\|\\s*(\\w+)\\s*\\|$\", r)\n    if m:\n        return f\"for {m.group(2)} in {m.group(1)}:\", \"loop\"\n    if re.match(r\"^loop\\s+do$\", r):\n        return \"while True:\", \"loop\"\n    if re.match(r\"^(if|elsif|elseif|unless|while|until|for)\\b\", r):\n        r = re.sub(r\"\\s+(then|do)$\", \"\", r)\n\n    r = r.replace(\":=\", \"=\")\n    for padrao, novo in CABECAS:\n        r = re.sub(padrao, novo, r)\n\n    # catch (e) / rescue => e  ->  except Exception as e\n    m = re.match(r\"^(?:catch|rescue)\\b(.*)$\", r)\n    if m:\n        resto = m.group(1).strip().strip(\"()\").strip()\n        nome = \"\"\n        if \"=>\" in resto:\n            nome = resto.split(\"=>\")[-1].strip()\n        elif \":\" in resto:\n            nome = resto.split(\":\")[0].strip()\n        elif resto:\n            nome = resto.split()[-1]\n        return \"except Exception\" + (f\" as {nome}\" if nome.isidentifier() else \"\") + \":\", \"except\"\n\n    m = CLASSE.match(r)\n    if m:\n        base = m.group(2) or m.group(3) or m.group(4) or \"\"\n        return f\"class {m.group(1)}\" + (f\"({base})\" if base else \"\") + \":\", \"class\"\n\n    # const f = (a, b) => {   (função com corpo em chaves)\n    m = re.match(rf\"^(?:(?:{DECL})\\s+)*(\\w+)\\s*=\\s*(?:async\\s+)?(?:\\(([^()]*)\\)|(\\w+))\\s*=>$\", r)\n    if m and abre:\n        return f\"def {m.group(1)}({limpar_args(m.group(2) or m.group(3) or '')}):\", \"def\"\n\n    # funções: def / function / fn / func / funcao / fun (e métodos estilo Java/JS)\n    m = re.match(DEF, r)\n    if not m and abre:\n        m = re.match(METODO, r)\n        if m and m.group(1) in CONTROLE:\n            m = None\n    if m:\n        return f\"def {m.group(1)}({limpar_args(m.group(2) or '')}):\", \"def\"\n\n    # if (x) / while (x) / for (...)  -> sem parênteses\n    m = re.match(r\"^(if|elif|while|for)\\s*(\\(.*\\))$\", r)\n    if m and balanceado(m.group(2)):\n        r = f\"{m.group(1)} {m.group(2)[1:-1].strip()}\"\n\n    # for (let i = 0; i \u003c n; i++)  ->  for i in range(0, n)\n    m = re.match(rf\"^for\\s*(?:(?:{DECL})\\s+)*(\\w+)\\s*=\\s*(.+?);\\s*\\1\\s*(\u003c=|\u003c|>=|>)\\s*(.+?);\\s*\\1\\s*\"\n                 r\"(\\+\\+|--|\\+=\\s*[^;]+|-=\\s*[^;]+)$\", r)\n    if m:\n        v, a, op, b, passo = m.groups()\n        passo = passo.replace(\" \", \"\")\n        inc = \"1\" if passo == \"++\" else \"-1\" if passo == \"--\" else (\n            f\"-({passo[2:]})\" if passo.startswith(\"-=\") else passo[2:])\n        fim = b if op in (\"\u003c\", \">\") else (f\"{b} + 1\" if op == \"\u003c=\" else f\"{b} - 1\")\n        r = f\"for {v} in range({a}, {fim}\" + (\"\" if inc == \"1\" else f\", {inc}\") + \")\"\n    # PHP: foreach ($arr as $k => $v)\n    m = re.match(r\"^foreach\\s*\\(?\\s*(.+?)\\s+as\\s+(?:(\\$?\\w+)\\s*=>\\s*)?(\\$?\\w+)\\s*\\)?$\", r)\n    if m:\n        r = (f\"for {m.group(2)}, {m.group(3)} in {m.group(1)}.items()\" if m.group(2)\n             else f\"for {m.group(3)} in {m.group(1)}\")\n    # Go: for i, v := range lista\n    m = re.match(r\"^for\\s+(\\w+)\\s*,\\s*(\\w+)\\s*=\\s*range\\s+(.+)$\", r)\n    if m:\n        r = (f\"for {m.group(2)} in {m.group(3)}\" if m.group(1) == \"_\"\n             else f\"for {m.group(1)}, {m.group(2)} in enumerate({m.group(3)})\")\n    # Java / C++: for (String s : lista)\n    m = re.match(r\"^for\\s+(?:[\\w\u003c>\\[\\],]+\\s+)?(\\w+)\\s*:\\s*(.+)$\", r)\n    if m:\n        r = f\"for {m.group(1)} in {m.group(2)}\"\n    # JS: for (const x of lista)\n    m = re.match(r\"^for\\s+(?:(?:let|const|var|int|auto|val)\\s+)?(\\w+|\\[[^\\]]+\\]|\\([^)]*\\))\\s+(?:of|in)\\s+(.+)$\", r)\n    if m:\n        r = f\"for {m.group(1)} in {m.group(2)}\"\n    # Go: for condicao {   ->  while condicao\n    m = re.match(r\"^for\\s+([^;]+)$\", r)\n    if m and not re.search(r\"\\b(?:in|of)\\b|;\", m.group(1)):\n        r = f\"while {m.group(1)}\"\n\n    # let x = 5 / int x = 5 / const x: number = 5  ->  x = 5      (int x;  ->  x = None)\n    tipo_re = r\"[\\w\u003c>\\[\\]?,]+\"\n    r = re.sub(rf\"^(?:{DECL}(?:\\[\\])?\\s+)+(\\w+)(?:\\s*:\\s*{tipo_re})?\\s*=(?!=)\", r\"\\1 =\", r)\n    r = re.sub(rf\"^(?:{DECL}(?:\\[\\])?\\s+)+(\\w+)(?:\\s*:\\s*{tipo_re})?$\", r\"\\1 = None\", r)\n    r = re.sub(r\"^[A-Z]\\w*(?:\u003c[\\w,\\s?\u003c>]*>)?(?:\\[\\])?\\s+(\\w+)\\s*=(?!=)\", r\"\\1 =\", r)\n    # x++  /  x--\n    m = re.match(r\"^(\\w+)(\\+\\+|--)$\", r)\n    if m:\n        r = f\"{m.group(1)} {'+' if m.group(2) == '++' else '-'}= 1\"\n    # C++: cout \u003c\u003c a \u003c\u003c b \u003c\u003c endl      cin >> x\n    m = re.match(r\"^cout\\s*\u003c\u003c\\s*(.+)$\", r)\n    if m:\n        itens = [x for x in re.split(r\"\\s*\u003c\u003c\\s*\", m.group(1)) if x != \"endl\"]\n        r = f'print({\", \".join(itens)}, sep=\"\")'\n    m = re.match(r\"^cin\\s*>>\\s*(\\w+)$\", r)\n    if m:\n        r = f\"{m.group(1)} = input()\"\n\n    r = re.sub(r\"^@(?=[A-Za-z_]\\w*\\s*(?:[-+*/]?=(?!=)|\\.))\", \"self.\", r)   # Ruby: @nome = x\n    mascarada, guardadas = mascarar(r)\n    triplo = '\"\"\"' in r or \"'''\" in r                          # texto de várias linhas: não mexe\n    r = restaurar(trocar(mascarada), guardadas, envolver=not (nativo or triplo))\n    r = re.sub(r\"^print\\s+(?!\\()(.+)$\", r\"print(\\1)\", r)       # puts \"oi\" / echo \"oi\"\n\n    tipo = None\n    if re.match(r\"^(for|while)\\b\", r):\n        tipo = \"loop\"\n    if re.match(r\"^except\\b\", r):\n        tipo = \"except\"\n    if (abre or dp or fundo) and re.match(r\"^(if|elif|else|while|for|try|finally|except|with|match|case)\\b\", r):\n        r += \":\"\n    return r, tipo\n\n\ndef com_self(py, nome_classe):\n    \"\"\"Dentro de uma classe: métodos ganham 'self' e o construtor vira __init__.\"\"\"\n    def f(mm):\n        nome, args = mm.group(1), mm.group(2)\n        if nome in (\"constructor\", \"initialize\", \"__construct\", nome_classe):\n            nome = \"__init__\"\n        primeiro = args.split(\",\")[0].strip() if args else \"\"\n        if primeiro in (\"self\", \"cls\"):\n            return f\"def {nome}({args}):\"\n        return f\"def {nome}(self{', ' if args else ''}{args}):\"\n\n    return re.sub(r\"^def (\\w+)\\((.*)\\):$\", f, py)\n\n\ndef traduzir_programa(fonte, brainrot=False, verbose=False, hardcore=False):\n    MAPA.clear()\n    HTML.clear()\n    linhas = fonte.lstrip(\"﻿\").splitlines()     # ﻿ = BOM, marca invisível de alguns editores\n    pular = -1                                       # linhas já engolidas por juntar()\n    saida, blocos, pil, pylevel = [], [], [0], 0\n    sw, bf, raw, classes = [], [], None, []\n    atual, n_sw = None, 0\n    em_bloco = em_triplo = go_import = False\n\n    def emit(txt, n):\n        saida.append(txt)\n        MAPA.append(n)\n\n    def soltar_bf():\n        if bf:\n            emit(\"    \" * bf[0][0] + f\"_bf({''.join(c for _, c, _ in bf)!r})\", bf[0][2])\n            bf.clear()\n\n    def indent_de(i):\n        \"\"\"Indentação da próxima linha com código depois da linha i (ou -1).\"\"\"\n        for j in range(i + 1, len(linhas)):\n            t = linhas[j].expandtabs(4)\n            if t.strip() and not t.strip().startswith((\"#\", \"//\")):\n                return len(t) - len(t.lstrip())\n        return -1\n\n    def juntar(i, s):\n        \"\"\"Objeto, lista ou chamada que continua nas próximas linhas: junta tudo numa linha só.\n        Devolve (linha_junta, última_linha_usada) ou (s, i) se nunca fechar.\"\"\"\n        partes, prof, j = [s], profundidade(mascarar(s)[0]), i\n        while prof > 0 and j + 1 \u003c len(linhas):\n            j += 1\n            mas, g = mascarar(linhas[j].strip())\n            mas = re.sub(r\"(//|#).*$\", \"\", mas).strip()       # tira comentários do fim\n            prof += profundidade(mas)\n            if mas:\n                partes.append(desmascarar(mas, g))\n        if prof > 0:\n            return s, i\n        return re.sub(r\"([\\[({])\\s+\", r\"\\1\", re.sub(r\"\\s+([\\])}])\", r\"\\1\", \" \".join(partes))), j\n\n    def nivel_atual():\n        return (pylevel + sum(1 for b in blocos if b != \"switch\")\n                + sum(1 for x in sw if x[\"ativo\"]))\n\n    for i, linha in enumerate(linhas):\n        n = i + 1\n        if i \u003c= pular:\n            continue\n        bruto = linha.strip()\n\n        if raw:                                    # dentro de \u003chtml>/\u003cstyle>/\u003cbody>: texto cru\n            HTML.append(bruto)\n            if raw in bruto.lower():\n                raw = None\n            continue\n        if em_triplo:                              # dentro de um texto \"\"\" de várias linhas\n            emit(linha, n)\n            if linha.count('\"\"\"') % 2 == 1:\n                em_triplo = False\n            continue\n        if em_bloco:                               # dentro de /* comentário */\n            em_bloco = \"*/\" not in bruto\n            continue\n        if go_import:                              # import ( ... ) do Go\n            go_import = bruto != \")\"\n            continue\n        m = re.match(r\"^\u003c(!doctype|html|style|body)\\b\", bruto, re.I)\n        if m:                                      # começo de página ou de CSS\n            soltar_bf()\n            HTML.append(bruto)\n            fim = {\"!doctype\": \"\u003c/html>\", \"html\": \"\u003c/html>\", \"style\": \"\u003c/style>\",\n                   \"body\": \"\u003c/body>\"}[m.group(1).lower()]\n            if fim not in bruto.lower():\n                raw = fim\n            continue\n        if re.match(r\"^\u003c/?[a-zA-Z][^>]*>\", bruto):  # tag solta, ex.: \u003ch1>Oi\u003c/h1>\n            soltar_bf()\n            HTML.append(bruto)\n            continue\n\n        linha = re.sub(r\"(;|\\{|\\})\\s*//.*$\", r\"\\1\", linha.expandtabs(4))\n        s = linha.strip()\n        if not s or s.startswith((\"//\", \"#\", \"-- \")):\n            continue\n        if s.startswith(\"/*\"):\n            em_bloco = \"*/\" not in s\n            continue\n        # let p = {        lista = [        f(       ->  junta até fechar\n        if (re.search(r\"(?:[=(,:\\[?]|\\breturn)\\s*[\\[{(]$|[\\[(]$\", mascarar(s)[0])\n                and not re.match(r\"^(case|default)\\b\", s)):\n            s, pular = juntar(i, s)\n            linha = linha[:len(linha) - len(linha.lstrip())] + s\n        if re.match(r\"^(package |using |use |\u003c\\?php|\\?>|import (java|javax|\\\")|import .*[;*]$)\", s):\n            continue\n        if s == \"import (\":\n            go_import = True\n            continue\n        if s in (\"end\", \"end;\", \"fi\", \"done\", \"endif\", \"endwhile\"):\n            continue\n        original = s\n        oi = len(linha) - len(linha.lstrip())\n\n        m = re.match(r\"^(\\}\\s*)+\", s)               # chaves que fecham\n        if m:\n            fechado = None\n            for _ in range(m.group(0).count(\"}\")):\n                if blocos:\n                    fechado = blocos.pop()\n                    if fechado == \"switch\":\n                        sw.pop()\n            s = s[m.end():].strip()\n            mw = re.match(r\"^while\\s*(.+?)\\s*;?$\", s)\n            if fechado == \"dowhile\" and mw:          # } while (cond);  ->  if not cond: break\n                cond = mw.group(1)\n                if balanceado(cond):\n                    cond = cond[1:-1]\n                dentro = \"    \" * (nivel_atual() + 1)\n                emit(dentro + f\"if not ({traduzir(cond, False)[0]}):\", n)\n                emit(dentro + \"    break\", n)\n                continue\n            if not s or s in (\";\", \")\", \");\", \"),\"):\n                continue\n\n        if not blocos:                              # indentação estilo Python / Ruby\n            while len(pil) > 1 and oi \u003c pil[-1]:\n                pil.pop()\n            if oi > pil[-1]:\n                pil.append(oi)\n            pylevel = len(pil) - 1\n\n        if re.fullmatch(r\"[+\\-\u003c>\\[\\].,\\s]{2,}\", s) and re.search(r\"[+\\-\u003c>]\", s):\n            bf.append((nivel_atual(), s, n))        # linha de Brainfuck\n            continue\n        soltar_bf()\n\n        # larp as python:  -> entra no personagem\n        m = re.match(r\"^larp\\s+as\\s+([^\\s:{]+)\\s*([:{])?\\s*$\", s, re.I)\n        if m:\n            nome = m.group(1).lower()\n            if nome in PERSONAGEM_DE:\n                atual = PERSONAGEM_DE[nome]\n            elif nome not in BRAINROT_NOMES:\n                raise LarpErro(f\"nunca ouvi falar do personagem '{m.group(1)}'. Tente: \"\n                               + \", \".join(sorted(set(PERSONAGEM_DE) | BRAINROT_NOMES)), n)\n            pre = \"    \" * nivel_atual()\n            emit(pre + f\"_entrar({nome!r})\", n)\n            if m.group(2) == \"{\":\n                emit(pre + \"if True:\", n)\n                blocos.append(\"larp\")\n            elif m.group(2) == \":\" and indent_de(i) > oi:\n                emit(pre + \"if True:\", n)\n            continue\n\n        quem = personagens_da_linha(original)\n        if hardcore and quem:\n            if atual is None:\n                raise LarpErro(\"[HARDCORE] nenhum personagem em cena! Comece com: \"\n                               f\"larp as {quem[0].lower()}:\", n)\n            if atual not in quem:\n                raise LarpErro(f\"[HARDCORE] você estava no personagem {atual} e, do nada, \"\n                               f\"escreveu como {quem[0]}. Isso não é LARP, é bagunça! \"\n                               f\"Avise antes com: larp as {quem[0].lower()}:\", n)\n\n        abre = s.endswith(\"{\")\n        if abre:\n            s = s[:-1].rstrip()\n        nivel = nivel_atual()\n        while classes and nivel \u003c= classes[-1][0]:\n            classes.pop()\n        pre = \"    \" * nivel\n\n        if abre and s == \"do\":                       # do { ... } while (cond)\n            emit(pre + \"while True:\", n)\n            if brainrot:\n                emit(pre + \"    _tralala()\", n)\n            blocos.append(\"dowhile\")\n            continue\n\n        msw = re.match(r\"^switch\\s*\\(?\\s*(.+?)\\s*\\)?$\", s)\n        if msw and abre:                            # switch (x) {\n            n_sw += 1\n            var = f\"_sw{n_sw}\"\n            emit(pre + f\"{var} = {traduzir(msw.group(1), False)[0]}\", n)\n            blocos.append(\"switch\")\n            sw.append({\"var\": var, \"ativo\": False, \"primeiro\": True})\n            continue\n        if sw and blocos and blocos[-1] == \"switch\":\n            est = sw[-1]\n            mc = re.match(r\"^case\\s+(.+?)\\s*:\\s*(.*)$\", s)\n            md = re.match(r\"^default\\s*:\\s*(.*)$\", s)\n            if mc or md:\n                est[\"ativo\"] = False\n                pre = \"    \" * nivel_atual()          # o case anterior acabou: volta um nível\n                if md:\n                    cab = \"if True:\" if est[\"primeiro\"] else \"else:\"\n                    resto = md.group(1)\n                else:\n                    txt = mc.group(1)\n                    valor = traduzir(txt, False)[0]\n                    mult = \",\" in mascarar(txt)[0]\n                    cond = f\"{est['var']} in ({valor},)\" if mult else f\"{est['var']} == {valor}\"\n                    cab = (\"if \" if est[\"primeiro\"] else \"elif \") + cond + \":\"\n                    resto = mc.group(2)\n                emit(pre + cab, n)\n                est[\"ativo\"], est[\"primeiro\"] = True, False\n                resto = resto.strip()\n                if resto and resto.rstrip(\";\").strip() != \"break\":\n                    emit(\"    \" * nivel_atual() + traduzir(resto, False)[0], n)\n                continue\n            if s.rstrip(\";\").strip() == \"break\":\n                if est[\"ativo\"]:\n                    emit(\"    \" * nivel_atual() + \"pass\", n)\n                continue\n\n        fundo = (not abre) and (not blocos) and indent_de(i) > oi\n        py, tipo = traduzir(s, abre, fundo)\n        if tipo == \"def\" and classes and nivel == classes[-1][0] + 1:\n            if re.match(r\"^(?:\\w+\\s+)*static\\b\", s):       # Java/Kotlin: método estático\n                emit(pre + \"@_estatico\", n)\n            else:\n                py = com_self(py, classes[-1][1])\n        if tipo == \"def\" and brainrot:\n            emit(pre + \"@_ballerina\", n)\n        emit(pre + py, n)\n        if tipo == \"class\":\n            classes.append((nivel, re.match(r\"class (\\w+)\", py).group(1)))\n        if verbose:\n            print(f\"🎭 linha {n} [{quem[0] if quem else 'neutro'}]: {py}\")\n        if brainrot and tipo == \"loop\" and py.endswith(\":\"):\n            emit(pre + \"    _tralala()\", n)\n        if brainrot and tipo == \"except\" and py.endswith(\":\"):\n            emit(pre + \"    _bombardiro()\", n)\n        if py.count('\"\"\"') % 2 == 1:\n            em_triplo = True\n        if abre:\n            blocos.append(tipo)\n    soltar_bf()\n    return \"\\n\".join(saida)\n", "larp_runtime.py": "\"\"\"\nO que roda \"por baixo\" da LARP Script: Brainfuck, personagens brainrot, strings estilo\nJavaScript, funções emprestadas de outras linguagens e a página HTML.\n\"\"\"\nimport json\nimport math\nimport os\nimport random\nimport re\nimport sys\nimport time\nimport types\n\nBRAINROT = False\nVERBOSE = False\n\n\n# ---------- strings: \"texto\" + 5 funciona, como no JavaScript e no Java ----------\nclass _S(str):\n    def __add__(self, o):\n        return _S(str.__add__(self, o if isinstance(o, str) else str(o)))\n\n    def __radd__(self, o):\n        return _S((o if isinstance(o, str) else str(o)) + str(self))\n\n\n# ---------- objetos: {nome: \"Ana\"} do JavaScript, com obj.nome ----------\nclass _O(dict):\n    \"\"\"Um dicionário que também aceita obj.chave (como objeto do JavaScript).\"\"\"\n\n    def __getattr__(self, k):\n        try:\n            return self[k]\n        except KeyError:\n            raise AttributeError(f\"o objeto não tem a chave '{k}'\") from None\n\n    def __setattr__(self, k, v):\n        self[k] = v\n\n    def __delattr__(self, k):\n        del self[k]\n\n    def put(self, k, v):                 # HashMap do Java\n        self[k] = v\n\n    def containsKey(self, k):\n        return k in self\n\n\nclass _Lista(list):\n    \"\"\"new ArrayList\u003c>() do Java: uma lista do Python que também entende add, get e size.\"\"\"\n\n    def add(self, x):\n        self.append(x)\n        return True\n\n    def get(self, i):\n        return self[i]\n\n    def size(self):\n        return len(self)\n\n    def isEmpty(self):\n        return not self\n\n\n# ---------- Brainfuck ----------\ndef bf(codigo):\n    \"\"\"Interpretador de Brainfuck (fita de 30000 células, valores de 0 a 255).\"\"\"\n    codigo = \"\".join(c for c in codigo if c in \"+-\u003c>[].,\")\n    if BRAINROT:\n        print(\"🪵 Tung Tung Tung Sahur está batendo na fita de 30000 células do Brainfuck...\")\n    pares, pilha = {}, []\n    for k, c in enumerate(codigo):\n        if c == \"[\":\n            pilha.append(k)\n        elif c == \"]\":\n            if not pilha:\n                raise ValueError(\"Brainfuck com colchetes [ ] desbalanceados\")\n            j = pilha.pop()\n            pares[j], pares[k] = k, j\n    if pilha:\n        raise ValueError(\"Brainfuck com colchetes [ ] desbalanceados\")\n    fita, ptr, i, passos, ultimo = [0] * 30000, 0, 0, 0, \"\\n\"\n    while i \u003c len(codigo):\n        c = codigo[i]\n        if c == \">\":\n            ptr += 1\n        elif c == \"\u003c\":\n            ptr -= 1\n        elif c == \"+\":\n            fita[ptr] = (fita[ptr] + 1) % 256\n        elif c == \"-\":\n            fita[ptr] = (fita[ptr] - 1) % 256\n        elif c == \".\":\n            ultimo = chr(fita[ptr])\n            sys.stdout.write(ultimo)\n        elif c == \",\":\n            t = sys.stdin.read(1)\n            fita[ptr] = ord(t) % 256 if t else 0\n        elif c == \"[\" and fita[ptr] == 0:\n            i = pares[i]\n        elif c == \"]\" and fita[ptr] != 0:\n            i = pares[i]\n        i += 1\n        passos += 1\n        if passos > 5_000_000:\n            print(\"\\n🦈 O Tralalero correu mais rápido que o compilador. Desisti do loop infinito.\")\n            return\n    if ultimo != \"\\n\":\n        sys.stdout.write(\"\\n\")\n\n\n# ---------- personagens brainrot ----------\nFALAS = {\n    \"tungtung\": \"🪵 TUNG TUNG TUNG SAHUR!\", \"sahur\": \"🪵 TUNG TUNG TUNG SAHUR!\",\n    \"tralalero\": \"🦈 Tralalero Tralala!\", \"bombardiro\": \"🐊✈️ Bombardiro Crocodilo decolou!\",\n    \"ballerina\": \"💃 Ballerina Cappuccina entrou dançando\",\n    \"brrbrr\": \"🌴 Brr Brr Patapim chegou\", \"patapim\": \"🌴 Brr Brr Patapim chegou\",\n    \"lirili\": \"🌵🐘 Lirilì Larilà chegou de sandália e parou o relógio\",\n    \"bombombini\": \"🪿✈️ Bombombini Gusini decolou atrás do Bombardiro\",\n    \"trippi\": \"🦐🐱 Trippi Troppi Troppa Trippa!\",\n    \"assassino\": \"☕🗡️ Cappuccino Assassino entrou em silêncio...\",\n    \"chimpanzini\": \"🐒🍌 Chimpanzini Bananini! Wa wa wa!\",\n    \"vaca\": \"🐄🪐 La Vaca Saturno Saturnita entrou em órbita\",\n    \"boneca\": \"🐸🛞 Boneca Ambalabu rolou para dentro do palco\",\n    \"verity\": \"🟡 Verity chegou. Ela sabe um milhão de coisas.\",\n    \"sixseven\": \"🤲 SIX SEVEN! 6️⃣7️⃣\", \"67\": \"🤲 SIX SEVEN! 6️⃣7️⃣\",\n}\n\n\ndef dormir(segundos):\n    \"\"\"sleep(): no brainrot, quem para o tempo é a Lirilì Larilà.\"\"\"\n    if BRAINROT:\n        print(f\"🌵🐘 Lirilì Larilà parou o tempo por {segundos} s\")\n    time.sleep(segundos)\n\n\ndef ballerina(f):\n    def w(*a, **k):\n        r = f(*a, **k)\n        if r is not None:\n            print(f\"💃 Ballerina Cappuccina dança antes de entregar: {r!r}\")\n            if r == 67:\n                print(\"🤲 SIX SEVEN! 6️⃣7️⃣\")\n        return r\n\n    w.__name__ = f.__name__\n    return w\n\n\ndef tralala():\n    print(\"🦈 tralalero tralala!\")\n\n\ndef bombardiro():\n    print(\"🐊✈️ Bombardiro Crocodilo bombardeou o erro!\")\n\n\ndef entrar(nome):\n    if nome in FALAS:\n        if BRAINROT:\n            print(FALAS[nome])\n    elif BRAINROT or VERBOSE:\n        print(f\"🎭 Entrando no personagem: {nome}... *ajeita o figurino*\")\n\n\n# ---------- funções emprestadas de outras linguagens ----------\ndef printf(fmt, *a):\n    fmt = str(fmt).replace(\"%v\", \"%s\")\n    sys.stdout.write(fmt % a if a else fmt)\n\n\ndef sprintf(fmt, *a):\n    fmt = str(fmt).replace(\"%v\", \"%s\")\n    return fmt % a if a else fmt\n\n\ndef rustfmt(fmt, *a):\n    \"\"\"format!(\"{} e {:?}\", x, y) do Rust: cada {} recebe o próximo valor.\"\"\"\n    valores = iter(a)\n    return re.sub(r\"\\{(:\\?)?\\}\", lambda m: repr(next(valores)) if m.group(1) else str(next(valores)),\n                  str(fmt))\n\n\ndef println(fmt, *a):\n    print(rustfmt(fmt, *a))\n\n\ndef num(x):\n    try:\n        return int(x)\n    except (ValueError, TypeError):\n        return float(x)\n\n\nclass _Object:\n    \"\"\"Object.keys(d) do JavaScript e, ao mesmo tempo, 'Object' como classe-base do Ruby/Java.\"\"\"\n    keys = staticmethod(lambda d: list(d.keys()))\n    values = staticmethod(lambda d: list(d.values()))\n    entries = staticmethod(lambda d: list(d.items()))\n\n\ndef criar_namespace():\n    \"\"\"Tudo que o código .larp pode usar sem importar (Math, parseInt, input, ...).\"\"\"\n    Math = types.SimpleNamespace(\n        floor=math.floor, ceil=math.ceil, sqrt=math.sqrt, pow=pow, max=max, min=min,\n        abs=abs, round=round, random=random.random, trunc=math.trunc, log=math.log,\n        sin=math.sin, cos=math.cos, tan=math.tan, PI=math.pi, E=math.e)\n    ns = {\n        \"_S\": _S, \"_O\": _O, \"_bf\": bf, \"_ballerina\": ballerina, \"_tralala\": tralala,\n        \"_bombardiro\": bombardiro, \"_entrar\": entrar, \"_printf\": printf, \"_sprintf\": sprintf,\n        \"_println\": println, \"_rustfmt\": rustfmt,\n        \"Math\": Math, \"parseInt\": lambda x, base=10: int(x, base), \"parseFloat\": float,\n        \"String\": str, \"Number\": num, \"Boolean\": bool,\n        \"Integer\": types.SimpleNamespace(parseInt=int, valueOf=int, MAX_VALUE=2**31 - 1,\n                                         MIN_VALUE=-2**31),\n        \"Double\": types.SimpleNamespace(parseDouble=float, valueOf=float),\n        \"JSON\": types.SimpleNamespace(stringify=json.dumps, parse=json.loads),\n        \"Object\": _Object,\n        \"Array\": _Lista, \"List\": _Lista, \"ArrayList\": _Lista, \"LinkedList\": _Lista,\n        \"Map\": _O, \"HashMap\": _O,\n        \"Set\": set, \"HashSet\": set,\n        \"prompt\": input, \"readline\": input, \"readLine\": input, \"entrada\": input, \"ler\": input,\n        \"length\": len, \"sleep\": dormir,\n        \"Thread\": types.SimpleNamespace(sleep=lambda ms: dormir(ms / 1000)),\n    }\n\n    def estatico(f):\n        \"\"\"Método 'static' (Java/Kotlin): vira staticmethod e também pode ser chamado pelo\n        nome puro, como dentro da própria classe.\"\"\"\n        ns.setdefault(f.__name__, f)\n        return staticmethod(f)\n\n    ns[\"_estatico\"] = estatico\n    return ns\n\n\n# ---------- página HTML/CSS ----------\ndef montar_html(linhas, brainrot):\n    \"\"\"Junta as linhas de HTML/CSS achadas no .larp numa página completa (texto).\"\"\"\n    corpo = \"\\n\".join(linhas)\n    if brainrot:\n        rodape = ('\u003cdiv style=\"text-align:center;font-size:2rem;margin:2rem\">'\n                  '🪵 TUNG TUNG TUNG TUNG SAHUR 🦈 💃 🐊\u003c/div>')\n        if \"\u003c/body>\" in corpo.lower():\n            corpo = re.sub(r\"\u003c/body>\", rodape + \"\u003c/body>\", corpo, count=1, flags=re.I)\n        else:\n            corpo += \"\\n\" + rodape\n    if \"\u003chtml\" not in corpo.lower():\n        corpo = ('\u003c!DOCTYPE html>\\n\u003chtml>\u003chead>\u003cmeta charset=\"utf-8\">\u003c/head>\u003cbody>\\n'\n                 + corpo + \"\\n\u003c/body>\u003c/html>\")\n    elif \"charset\" not in corpo.lower():\n        corpo = re.sub(r\"(\u003chtml[^>]*>)\", r'\\1\u003cmeta charset=\"utf-8\">', corpo, count=1, flags=re.I)\n    return corpo\n\n\ndef salvar_html(linhas, caminho_larp, brainrot):\n    \"\"\"Salva a página ao lado do .larp e abre no navegador.\"\"\"\n    caminho = os.path.splitext(os.path.abspath(caminho_larp))[0] + \".html\"\n    with open(caminho, \"w\", encoding=\"utf-8\") as f:\n        f.write(montar_html(linhas, brainrot))\n    print(f\"🌐 Página HTML criada: {caminho}\")\n    if not os.environ.get(\"LARP_SEM_NAVEGADOR\"):   # os testes ligam isso para não abrir abas\n        import webbrowser                          # só aqui: no LARP Studio (navegador) não existe\n        webbrowser.open(\"file:///\" + caminho.replace(\"\\\\\", \"/\"))\n    return caminho\n", "ponte.py": "\"\"\"\nPonte entre o LarpStudios (JavaScript, no navegador) e a LARP Script (Python).\n\nO navegador roda Python com o Pyodide. Ele copia larp.py, larp_tradutor.py, larp_runtime.py\ne este arquivo para dentro do Pyodide e chama traduzir() e depois rodar().\n\"\"\"\nimport larp\nimport larp_runtime as rt\nimport larp_tradutor as lt\n\nARQ = \"programa.larp\"\n\n\ndef traduzir(fonte, brainrot, hardcore):\n    \"\"\"Devolve (python_gerado, pagina_html). Se der erro da LARP, imprime e devolve None.\"\"\"\n    rt.BRAINROT, rt.VERBOSE = brainrot, False\n    try:\n        py = lt.traduzir_programa(fonte, brainrot, False, hardcore)\n    except lt.LarpErro as e:\n        print(f\"🎭 {e}\")\n        if e.linha:\n            print(f\"📍 linha {e.linha} do seu .larp: {fonte.splitlines()[e.linha - 1].strip()}\")\n        return None\n    html = rt.montar_html(lt.HTML, brainrot) if lt.HTML else \"\"\n    return py, html\n\n\ndef rodar(py, fonte, brainrot):\n    larp.executar(py, rt.criar_namespace(), ARQ, fonte, brainrot)\n    if lt.HTML:\n        print(\"🌐 Página HTML pronta: veja a aba PÁGINA\")\n\n\ndef personagem(linha):\n    \"\"\"Qual linguagem essa linha parece (mostrado na barra de status do LarpStudios).\"\"\"\n    quem = lt.personagens_da_linha(linha.strip())\n    return quem[0] if quem else \"\"\n"}, "exemplos": {"bom.larp": "console.log(\"arquivo salvo com BOM, e funcionou!\")\n", "dicas_erro.larp": "// A LARP tenta adivinhar o que você quis dizer\nlet contador = 10\nconsole.log(contdor + 1)\n", "erro_linha.larp": "console.log(\"linha 1 ok\")\nlet a = 10\n\n/* comentário\n   de várias linhas */\nfunction falha() {\n    console.log(variavelQueNaoExiste)\n}\nfalha()\n", "exemplo.larp": "// Hello em vários personagens\nconsole.log(\"Oi do JavaScript!\");\nputs \"Oi do Ruby!\"\necho \"Oi do PHP\";\nSystem.out.println(\"Oi do Java!\");\nescreva(\"Oi em português!\")\n\n# Python no meio da festa\ndef fib(n):\n    a, b = 0, 1\n    for i in range(n):\n        print(a)\n        a, b = b, a + b\n\nfib(6)\n\nfunction dobro(x) {\n    return x * 2;\n}\nconst soma = (a, b) => a + b;\nlet total = soma(dobro(3), 4);\nconsole.log(`Total: ${total}`);\n\n// FizzBuzz misturando estilos\nfor (let i = 1; i \u003c= 15; i++) {\n    if (i % 15 == 0) {\n        puts \"FizzBuzz\"\n    } else if (i % 3 == 0) {\n        puts \"Fizz\"\n    } else if (i % 5 == 0) {\n        puts \"Buzz\"\n    } else {\n        puts i\n    }\n}\n\nclass Gato {\n    constructor(nome) {\n        this.nome = nome;\n    }\n    falar() {\n        console.log(this.nome + \" diz miau\");\n    }\n}\nconst gato = new Gato(\"Mingau\");\ngato.falar();\n\ntry {\n    let x = 1 / 0;\n} catch (e) {\n    console.log(\"Deu ruim: \" + str(e));\n}\n", "hardcore_certo.larp": "// No --hardcore, cada trecho precisa avisar qual personagem está em cena\nlarp as python:\ndef dobro(x):\n    return x * 2\nprint(dobro(21))\n\nlarp as javascript\nconst nomes = [\"Ana\", \"Bia\"]\nconsole.log(`Oi, ${nomes[0]}!`)\n\nlarp as ruby\n3.times do |i|\n  puts \"volta #{i}\"\nend\n\nlarp as java\nSystem.out.println(\"Fim do LARP, \" + nomes.length + \" atores em cena\");\n", "hardcore_erro.larp": "larp as python:\nprint(\"sou Python\")\nconsole.log(\"mas escrevi como JavaScript!\")\n", "java_cpp.larp": "import java.util.Scanner;\n#include \u003ciostream>\n\n\"\"\"\nTexto de várias linhas\nif (isso fosse código) { quebraria }\n\"\"\"\n\npublic class Main {\n    public static int soma(int a, int b) {\n        return a + b;\n    }\n    public static void main() {\n        int x = 5;\n        String nome = \"Lucca\";\n        System.out.println(\"Oi, \" + nome + \" \" + soma(x, 2));\n        for (int i = 0; i \u003c 3; i++) {\n            cout \u003c\u003c \"i=\" \u003c\u003c i \u003c\u003c endl;\n        }\n        try {\n            int z = 10 / 0;\n        } catch (Exception e) {\n            System.out.println(\"erro pego: \" + e);\n        }\n    }\n}\nMain.main();\n\nlet idade = prompt(\"idade? \")\nconsole.log(\"você tem \" + idade + \" anos\")\n", "loop_infinito.larp": "// Rode com --tempo=1 para a LARP parar sozinha\nlet i = 0\nwhile (true) {\n    i++\n}\n", "melhorias.larp": "// Novidades da etapa 4: do...while, objetos, generics, strings coladas e mais linguagens\n\nlet i = 0\ndo {\n    console.log(\"volta \" + i)\n    i++\n} while (i \u003c 3);\n\nlet pessoa = {nome: \"Ana\", idade: 20, pets: [\"Rex\"]}\nconsole.log(pessoa.nome, pessoa[\"idade\"])\npessoa.idade = 21\nconst config = {\n    tema: \"escuro\",   // comentário\n    tamanho: { largura: 800, altura: 600 },\n}\nconsole.log(config.tamanho.largura, JSON.stringify(config))\nlet vazio = {}\nvazio.x = 5\nconsole.log(vazio)\n// Python continua funcionando: set e dict comprehension\nlet s = {1, 2}\nprint(type(s).__name__)\nd = {k: k * 2 for k in range(3)}\nprint(d)\nlista = [\n    1,\n    2,\n]\nprint(lista)\n\n// ---- generics (Java, Rust)\nList\u003cString> nomes = new ArrayList\u003c>();\nnomes.add(\"Bia\")\nSystem.out.println(nomes.get(0) + \" \" + nomes.size())\nMap\u003cString, Integer> m = new HashMap\u003c>();\npublic static \u003cT> void mostrar(T x) {\n    System.out.println(\"mostrar: \" + x);\n}\nmostrar(42)\nfn maior\u003cT: PartialOrd>(a: T, b: T) -> T {\n    if a > b {\n        return a\n    }\n    return b\n}\nprintln!(\"{}\", maior(3, 9))\nint[] nums = {4, 5, 6};\nconsole.log(nums.length)\n\n// ---- strings coladas e mais personagens\nconsole.log(\"strings \" \"coladas\" ' juntas')\nConsole.WriteLine(\"Oi do C#\")\nputStrLn \"Oi do Haskell\"\nIO.puts \"Oi do Elixir\"\n", "misturado.larp": "console.log(\"Começando a festa\")\n\n++++++++[>++++[>++>+++>+++>+\u003c\u003c\u003c\u003c-]>+>+>->>+[\u003c]\u003c-]>>.>---.+++++++..+++.>>.\u003c-.\u003c.+++.------.--------.>>+.>++.\n\nfunction dobro(x) {\n    return x * 2;\n}\nprint(dobro(21))\n\n\u003cstyle>\n  body { background: #111; font-family: sans-serif; }\n  #titulo { color: #7CFC00; text-align: center; }\n\u003c/style>\n\u003ch1 id=\"titulo\">LARP Script também larpa de HTML e CSS 🎭\u003c/h1>\n\u003cp style=\"color: white; text-align: center;\">Feito com Python, JavaScript e Brainfuck!\u003c/p>\n", "novos.larp": "// ---- switch estilo JavaScript\nlet dia = 3\nswitch (dia) {\n    case 1:\n        puts \"segunda\"\n        break;\n    case 2, 3:\n        puts \"terça ou quarta\"\n        break;\n    default:\n        puts \"outro dia\"\n}\n\n# ---- Ruby com end\ndef saudar(nome)\n  puts \"Oi, #{nome}!\"\nend\nsaudar(\"Lucca\")\n3.times do |i|\n  puts \"volta #{i}\"\nend\nif dia > 2\n  puts \"dia maior que 2\"\nelse\n  puts \"dia pequeno\"\nend\n\n// ---- Go\nfor i := 0; i \u003c 3; i++ {\n    fmt.Println(i)\n}\nfor i, v := range [10, 20] {\n    fmt.Println(i, v)\n}\n\n// ---- ternário, tamanho e push\nlet lista = [1, 2, 3]\nconsole.log(lista.length > 2 ? \"grande\" : \"pequena\")\nlista.push(4)\nconsole.log(lista.length)\n\n// ---- PHP\n$nomes = [\"Ana\", \"Bia\"]\nforeach ($nomes as $nome) {\n    echo $nome\n}\n\n// ---- texto + número como no JavaScript\nlet total = 10\nconsole.log(\"Total: \" + total)\nconsole.log(5 + \" maçãs\")\nconsole.log(Math.floor(3.7), parseInt(\"42\") + 1)\n\n// ---- for com passo e contagem regressiva\nfor (let k = 10; k > 0; k -= 4) {\n    console.log(k)\n}\n\n// ---- arrow function com bloco\nconst quadrado = (x) => {\n    return x * x;\n};\nconsole.log(quadrado(7))\n\n// ---- classe estilo Ruby\nclass Cachorro \u003c Object\n  def initialize(nome)\n    @nome = nome\n  end\n  def latir\n    puts \"#{@nome} diz: au au!\"\n  end\nend\nCachorro.new(\"Rex\").latir()\n\n// ---- Brainfuck\n++++++++++[>+++++++++++\u003c-]>+.------.\n\n// ---- Kotlin e Lua\nfun soma(a: Int, b: Int): Int {\n    return a + b\n}\nprintln(soma(2, 3))\nlocal x = 5\nif x ~= 4 then\n    print(\"x não é 4\")\nend\n", "oi.larp": "++++++++++[>+++++++++++\u003c-]>+.------.\n", "personagens.larp": "larp as python:\ndef dobro(x):\n    return x * 2\nprint(dobro(4))\n\nlarp as javascript\nconsole.log(\"agora sou JavaScript\")\n\nlarp as tungtung\nlarp as java {\n    System.out.println(\"agora sou Java\");\n}\n", "personagens2.larp": "larp as lirili\nsleep(0)\nlarp as trippi\nlarp as chimpanzini\nlarp as vaca\nlarp as verity\nfunction seisSete() {\n    return 60 + 7\n}\nseisSete()\nlet lista = [1, 2, 3]\nconsole.log(lista[10])\n", "todas_linguagens.larp": "// Um oi de cada linguagem que a LARP Script sabe fingir ser\nprint(\"Python\")\nconsole.log(\"JavaScript\")\nSystem.out.println(\"Java\");\ncout \u003c\u003c \"C++\" \u003c\u003c endl;\nConsole.WriteLine(\"C#\");\nprintln!(\"{}\", \"Rust\");\nfmt.Println(\"Go\")\nputs \"Ruby\"\necho \"PHP\";\nprintln(\"Kotlin\")\nlocal lua = \"Lua\"\nprint(lua)\nputStrLn \"Haskell\"\nIO.puts \"Elixir\"\nescreva(\"Português\")\n++++++++[>++++++++\u003c-]>++.++++.\n\u003cstyle>h1 { color: #ffd700; text-align: center; font-family: sans-serif; }\u003c/style>\n\u003ch1>HTML e CSS também 🎭\u003c/h1>\n"}, "snippets": {"Oi (JavaScript)": {"prefix": "oi", "body": ["console.log(\"${1:Oi, LARP Script!}\")"], "description": "Imprime uma mensagem"}, "Entrar no personagem": {"prefix": "larp", "body": ["larp as ${1|python,javascript,java,rust,go,ruby,php,lua,portugues,tungtung,tralalero|}:"], "description": "Troca de personagem (usado no --hardcore)"}, "Função (JavaScript)": {"prefix": "fn", "body": ["function ${1:nome}(${2:a, b}) {", "    return ${3:a + b};", "}"], "description": "Função estilo JavaScript"}, "Switch": {"prefix": "switch", "body": ["switch (${1:valor}) {", "    case ${2:1}:", "        ${3:puts \"um\"}", "        break;", "    default:", "        ${4:puts \"outro\"}", "}"], "description": "switch/case"}, "Repetir (Ruby)": {"prefix": "times", "body": ["${1:3}.times do |${2:i}|", "  puts \"volta #{${2:i}}\"", "end"], "description": "Loop estilo Ruby"}, "Loop (JavaScript)": {"prefix": "for", "body": ["for (let ${1:i} = 0; ${1:i} \u003c ${2:10}; ${1:i}++) {", "    ${3:console.log(${1:i})}", "}"], "description": "for estilo JavaScript"}, "Página HTML + CSS": {"prefix": "pagina", "body": ["\u003cstyle>", "  body { background: #1a1a2e; font-family: sans-serif; text-align: center; }", "  h1 { color: #ffd700; }", "\u003c/style>", "\u003ch1>${1:Minha página em .larp}\u003c/h1>", "\u003cp style=\"color: white;\">${2:Feita com LARP Script!}\u003c/p>"], "description": "Página HTML com CSS (abre no navegador)"}, "Brainfuck: imprime oi": {"prefix": "bfoi", "body": ["++++++++++[>+++++++++++\u003c-]>+.------."], "description": "Brainfuck que imprime 'oi'"}, "Do...while": {"prefix": "dowhile", "body": ["do {", "    ${1:console.log(i)}", "    ${2:i++}", "} while (${3:i \u003c 3});"], "description": "Repete pelo menos uma vez e depois testa a condição"}, "Objeto (JavaScript)": {"prefix": "objeto", "body": ["let ${1:pessoa} = {nome: \"${2:Ana}\", idade: ${3:20}}", "console.log(${1:pessoa}.nome)"], "description": "Objeto com chaves sem aspas; acesse com obj.chave"}}, "config": {"comments": {"lineComment": "//", "blockComment": ["/*", "*/"]}, "brackets": [["{", "}"], ["[", "]"], ["(", ")"]], "autoClosingPairs": [{"open": "{", "close": "}"}, {"open": "[", "close": "]"}, {"open": "(", "close": ")"}, {"open": "\"", "close": "\"", "notIn": ["string"]}, {"open": "'", "close": "'", "notIn": ["string"]}, {"open": "`", "close": "`", "notIn": ["string"]}], "surroundingPairs": [["{", "}"], ["[", "]"], ["(", ")"], ["\"", "\""], ["'", "'"], ["`", "`"]]}};</script>
+<script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/min/vs/loader.js"></script>
+<script>
+"use strict";
+const $ = (s) => document.querySelector(s);
+const $$ = (s) => [...document.querySelectorAll(s)];
+const CHAVE = "larpstudios:v1";
+const TEMAS_MONACO = { escuro: "larp-escuro", claro: "larp-claro", contraste: "hc-black" };
+const BOAS_VINDAS = `// Bem-vindo ao LarpStudios! 🎭
+// Aperte Ctrl+Enter (ou ▶ Rodar) para executar.
+// Misture as linguagens que quiser no mesmo arquivo:
+
+console.log("Oi do JavaScript!");
+puts "Oi do Ruby!"
+System.out.println("Oi do Java!");
+
+def dobro(x):
+    return x * 2
+
+for (let i = 1; i <= 3; i++) {
+    escreva("dobro de " + i + " = " + dobro(i))
+}
+
+// prompt() lê a caixa ENTRADA, ali do lado →
+let nome = prompt("Qual é o seu nome? ")
+console.log(\`Prazer, \${nome}!\`)
+
+// Quer uma página? Abra o exemplo misturado.larp ou digite "pagina" + Ctrl+Espaço
+`;
+
+// ---------------- estado (salvo no navegador) ----------------
+function estadoInicial() {
+  return { meus: { "meu.larp": BOAS_VINDAS }, editados: {},
+           entradas: { "meus/meu.larp": "ldb", "exemplos/java_cpp.larp": "17" },
+           abas: ["meus/meu.larp"], aberto: "meus/meu.larp", brainrot: false, hardcore: false,
+           tema: matchMedia("(prefers-contrast: more)").matches ? "contraste" : "escuro", fonte: 14, leitor: false,
+           aura: 0, viuBoasVindas: false };
+}
+let estado = (() => {
+  try {
+    const s = JSON.parse(localStorage.getItem(CHAVE));
+    if (s && s.meus && Array.isArray(s.abas)) return Object.assign(estadoInicial(), s);
+  } catch (e) { /* sem localStorage: começa do zero */ }
+  return estadoInicial();
+})();
+let timerSalvar = 0;
+function salvar() {
+  clearTimeout(timerSalvar);
+  timerSalvar = setTimeout(() => { try { localStorage.setItem(CHAVE, JSON.stringify(estado)); } catch (e) {} }, 300);
+}
+
+const pasta = (id) => id.split("/")[0];
+const nomeDe = (id) => id.slice(id.indexOf("/") + 1);
+function existe(id) {
+  return pasta(id) === "meus" ? nomeDe(id) in estado.meus : nomeDe(id) in DADOS.exemplos;
+}
+function textoDe(id) {
+  const n = nomeDe(id);
+  if (pasta(id) === "meus") return estado.meus[n] ?? "";
+  return estado.editados[n] ?? DADOS.exemplos[n];
+}
+function guardarTexto(id, t) {
+  const n = nomeDe(id);
+  if (pasta(id) === "meus") estado.meus[n] = t;
+  else if (t === DADOS.exemplos[n]) delete estado.editados[n];
+  else estado.editados[n] = t;
+  salvar();
+  desenharListaDepois();
+}
+
+// ---------------- editor (Monaco = o editor do VS Code; se não carregar, um textarea) ----------------
+let monacoOk = false, editor = null, pyEditor = null;
+const modelos = {};
+const ed = {
+  mostrar(id) {
+    if (monacoOk) {
+      if (!modelos[id]) {
+        const m = monaco.editor.createModel(textoDe(id), "larp");
+        m.onDidChangeContent(() => guardarTexto(id, m.getValue()));
+        modelos[id] = m;
+      }
+      editor.setModel(modelos[id]);
+      editor.updateOptions({ ariaLabel: `Editor de código, arquivo ${nomeDe(id)}. Ctrl+Enter roda.` });
+    } else {
+      editor.value = textoDe(id);
+    }
+  },
+  texto() { return monacoOk ? editor.getValue() : editor.value; },
+  trocarTexto(id, t) { if (monacoOk && modelos[id]) modelos[id].setValue(t); else if (!monacoOk) editor.value = t; },
+  esquecer(id) { if (modelos[id]) { modelos[id].dispose(); delete modelos[id]; } },
+  foco() { editor && editor.focus(); },
+  python(t) { if (pyEditor && pyEditor.setValue) pyEditor.setValue(t); else $("#python pre").textContent = t; },
+};
+
+function iniciarTextarea() {
+  monacoOk = false;
+  const ta = document.createElement("textarea");
+  ta.spellcheck = false;
+  ta.addEventListener("input", () => guardarTexto(estado.aberto, ta.value));
+  ta.addEventListener("keydown", (e) => {
+    if (e.key === "Tab") { e.preventDefault(); ta.setRangeText("    ", ta.selectionStart, ta.selectionEnd, "end"); guardarTexto(estado.aberto, ta.value); }
+  });
+  $("#editor").appendChild(ta);
+  $("#python").innerHTML = "<pre></pre>";
+  editor = ta;
+  comecar();
+}
+
+function registrarLarp() {
+  monaco.languages.register({ id: "larp", extensions: [".larp"] });
+  monaco.languages.setMonarchTokensProvider("larp", {
+    controle: ["if", "elif", "elsif", "elseif", "else", "senao", "se", "enquanto", "while", "for", "foreach",
+      "in", "of", "switch", "case", "default", "match", "break", "continue", "return", "retorne", "try",
+      "catch", "except", "finally", "throw", "raise", "do", "end", "then", "unless", "until", "loop",
+      "begin", "rescue", "ensure", "range", "times", "each"],
+    decl: ["def", "function", "fn", "func", "funcao", "fun", "class", "let", "const", "var", "val", "local",
+      "mut", "public", "private", "protected", "static", "async", "new", "extends", "implements", "this",
+      "self", "constructor", "initialize", "import", "from", "export", "lambda"],
+    tipos: ["int", "string", "String", "double", "float", "bool", "boolean", "long", "char", "void", "auto",
+      "any", "number", "str", "i32", "i64", "u32", "u64", "f32", "f64", "Int", "Double", "Boolean"],
+    consts: ["true", "false", "null", "nil", "undefined", "None", "True", "False", "verdadeiro", "falso", "nulo"],
+    prints: ["puts", "echo", "escreva", "print", "println", "cout", "printf", "prompt", "input"],
+    tokenizer: {
+      root: [
+        [/\b(larp)(\s+)(as)\b/, ["larp", "", "larp"]],
+        [/<style[^>]*>/, "tag", "@css"],
+        [/<\/?[a-zA-Z!][^>]*>/, "tag"],
+        [/[+\-<>\[\].,]{2,}\s*$/, "bf"],
+        [/\/\/.*$/, "comment"],
+        [/#.*$/, "comment"],
+        [/\/\*/, "comment", "@bloco"],
+        [/"""/, "string", "@triplo"],
+        [/"/, "string", "@aspas"],
+        [/'/, "string", "@simples"],
+        [/`/, "string", "@crase"],
+        [/(console\.log|System\.out\.println|System\.out\.print|fmt\.Println|println!)/, "print"],
+        [/\d+(\.\d+)?/, "number"],
+        [/[A-Za-z_$@][\w$]*(?=\s*\()/, { cases: { "@controle": "keyword", "@decl": "decl", "@prints": "print", "@default": "function" } }],
+        [/[A-Za-z_$@][\w$]*/, { cases: { "@controle": "keyword", "@decl": "decl", "@tipos": "type", "@consts": "constant", "@prints": "print", "@default": "identifier" } }],
+        [/=>|->|:=|\+\+|--|[=!<>]=?|&&|\|\||[+\-*\/%]/, "operator"],
+      ],
+      bloco: [[/[^*]+/, "comment"], [/\*\//, "comment", "@pop"], [/\*/, "comment"]],
+      triplo: [[/"""/, "string", "@pop"], [/[^"]+/, "string"], [/"/, "string"]],
+      aspas: [[/#\{[^}]*\}/, "interp"], [/[^\\"#]+/, "string"], [/\\./, "escape"], [/#/, "string"], [/"/, "string", "@pop"]],
+      simples: [[/[^\\']+/, "string"], [/\\./, "escape"], [/'/, "string", "@pop"]],
+      crase: [[/\$\{[^}]*\}/, "interp"], [/[^\\`$]+/, "string"], [/\\./, "escape"], [/\$/, "string"], [/`/, "string", "@pop"]],
+      css: [[/<\/style>/, "tag", "@pop"], [/[\w-]+(?=\s*:)/, "cssprop"], [/#[0-9a-fA-F]{3,8}\b/, "number"],
+            [/[{};:]/, "operator"], [/[^<{};:#]+/, "cssval"], [/./, "cssval"]],
+    },
+  });
+
+  const cfg = DADOS.config;
+  const Indent = monaco.languages.IndentAction.Indent;
+  monaco.languages.setLanguageConfiguration("larp", {
+    comments: cfg.comments, brackets: cfg.brackets, autoClosingPairs: cfg.autoClosingPairs,
+    surroundingPairs: cfg.surroundingPairs.map(([open, close]) => ({ open, close })),
+    onEnterRules: [
+      { beforeText: /:\s*$/, action: { indentAction: Indent } },                 // Python
+      { beforeText: /\b(do(\s*\|[^|]*\|)?|then)\s*$/, action: { indentAction: Indent } }, // Ruby / Lua
+    ],
+  });
+
+  // snippets da extensão do VS Code + palavras de várias linguagens
+  const palavras = ["console.log", "System.out.println", "fmt.Println", "println!", "puts", "echo", "escreva",
+    "function", "def", "class", "constructor", "return", "switch", "default", "foreach", "elsif", "unless",
+    "prompt", "parseInt", "Math.floor", "Math.random", "JSON.stringify", "larp as"];
+  monaco.languages.registerCompletionItemProvider("larp", {
+    provideCompletionItems(model, pos) {
+      const w = model.getWordUntilPosition(pos);
+      const range = { startLineNumber: pos.lineNumber, endLineNumber: pos.lineNumber, startColumn: w.startColumn, endColumn: w.endColumn };
+      const K = monaco.languages.CompletionItemKind;
+      const snippets = Object.entries(DADOS.snippets).map(([nome, s]) => ({
+        label: s.prefix, kind: K.Snippet, detail: nome, documentation: s.description, range,
+        insertText: [].concat(s.body).join("\n"),
+        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+      }));
+      return { suggestions: snippets.concat(palavras.map((p) => ({ label: p, kind: K.Keyword, insertText: p, range }))) };
+    },
+  });
+
+  monaco.editor.defineTheme("larp-claro", {
+    base: "vs", inherit: true,
+    rules: [
+      { token: "keyword", foreground: "AF00DB" }, { token: "decl", foreground: "0000FF" },
+      { token: "type", foreground: "267F99" }, { token: "constant", foreground: "0000FF" },
+      { token: "print", foreground: "795E26", fontStyle: "bold" }, { token: "function", foreground: "795E26" },
+      { token: "identifier", foreground: "001080" }, { token: "string", foreground: "A31515" },
+      { token: "interp", foreground: "8A5A00" }, { token: "escape", foreground: "EE0000" },
+      { token: "number", foreground: "098658" }, { token: "comment", foreground: "008000", fontStyle: "italic" },
+      { token: "bf", foreground: "C2185B", fontStyle: "bold" }, { token: "tag", foreground: "800000" },
+      { token: "larp", foreground: "8A5A00", fontStyle: "bold" }, { token: "operator", foreground: "000000" },
+      { token: "cssprop", foreground: "E50000" }, { token: "cssval", foreground: "0451A5" },
+    ],
+    colors: {},
+  });
+  monaco.editor.defineTheme("larp-escuro", {
+    base: "vs-dark", inherit: true,
+    rules: [
+      { token: "keyword", foreground: "C586C0" }, { token: "decl", foreground: "569CD6" },
+      { token: "type", foreground: "4EC9B0" }, { token: "constant", foreground: "569CD6" },
+      { token: "print", foreground: "DCDCAA", fontStyle: "bold" }, { token: "function", foreground: "DCDCAA" },
+      { token: "identifier", foreground: "9CDCFE" }, { token: "string", foreground: "CE9178" },
+      { token: "interp", foreground: "FFD700" }, { token: "escape", foreground: "D7BA7D" },
+      { token: "number", foreground: "B5CEA8" }, { token: "comment", foreground: "6A9955", fontStyle: "italic" },
+      { token: "bf", foreground: "FF79C6", fontStyle: "bold" }, { token: "tag", foreground: "569CD6" },
+      { token: "larp", foreground: "FFD700", fontStyle: "bold" }, { token: "operator", foreground: "D4D4D4" },
+      { token: "cssprop", foreground: "9CDCFE" }, { token: "cssval", foreground: "CE9178" },
+    ],
+    colors: { "editor.background": "#1e1e1e" },
+  });
+}
+
+function iniciarMonaco() {
+  monacoOk = true;
+  registrarLarp();
+  const comum = { theme: TEMAS_MONACO[estado.tema] || "larp-escuro", automaticLayout: true, fontSize: estado.fonte,
+    tabSize: 4, insertSpaces: true, accessibilitySupport: estado.leitor ? "on" : "auto",
+    fontFamily: "'Cascadia Code', Consolas, 'Courier New', monospace", minimap: { enabled: false },
+    scrollBeyondLastLine: false, renderWhitespace: "selection", padding: { top: 8 } };
+  editor = monaco.editor.create($("#editor"), Object.assign({ model: null }, comum));
+  editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, rodar);
+  editor.onDidChangeCursorPosition((e) => {
+    $("#st-cursor").textContent = `Ln ${e.position.lineNumber}, Col ${e.position.column}`;
+    pedirPersonagem(editor.getModel().getLineContent(e.position.lineNumber));
+  });
+  pyEditor = monaco.editor.create($("#python"), Object.assign({ value: "", language: "python", readOnly: true,
+    lineNumbers: "on", fontSize: 13 }, comum));
+  comecar();
+}
+
+// ---------------- arquivos, abas e lista ----------------
+function abrir(id) {
+  if (!existe(id)) return;
+  if (!estado.abas.includes(id)) estado.abas.push(id);
+  estado.aberto = id;
+  ed.mostrar(id);
+  $("#entrada").value = estado.entradas[id] || "";
+  desenharAbas();
+  desenharLista();
+  salvar();
+  ed.foco();
+}
+
+function fecharAba(id) {
+  estado.abas = estado.abas.filter((a) => a !== id);
+  if (!estado.abas.length) estado.abas = [Object.keys(estado.meus).length ? "meus/" + Object.keys(estado.meus)[0] : "exemplos/exemplo.larp"];
+  if (estado.aberto === id || !estado.abas.includes(estado.aberto)) abrir(estado.abas[estado.abas.length - 1]);
+  else { desenharAbas(); salvar(); }
+}
+
+function nomeValido(n) {
+  n = (n || "").trim().replace(/[\\/]/g, "-");
+  if (!n) return "";
+  return n.endsWith(".larp") ? n : n + ".larp";
+}
+
+// campo de nome dentro da lista, como no VS Code (prompt() não existe em todo navegador)
+function pedirNome() {
+  if ($("#campo-novo")) { $("#campo-novo").focus(); return; }
+  const li = document.createElement("li");
+  li.innerHTML = `<input id="campo-novo" aria-label="Nome do arquivo novo (Enter cria, Esc cancela)"
+    value="novo.larp" spellcheck="false" style="width:100%;font:inherit;padding:3px 6px;
+    background:var(--campo);color:var(--texto);border:1px solid var(--destaque);border-radius:3px">`;
+  $("#lista-meus").prepend(li);
+  const campo = li.querySelector("input");
+  campo.focus();
+  campo.setSelectionRange(0, 4);
+  const fim = (criar) => {
+    const nome = nomeValido(campo.value);
+    if (criar && nome in estado.meus) { campo.style.borderColor = "var(--vermelho)"; status(`⚠️ Já existe ${nome}. Escolha outro nome.`); return; }
+    li.remove();
+    if (criar && nome) novoArquivo(nome);
+  };
+  campo.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") { e.preventDefault(); fim(true); }
+    if (e.key === "Escape") { e.preventDefault(); fim(false); }
+  });
+  campo.addEventListener("blur", () => { if (li.isConnected) fim(true); });
+}
+
+function novoArquivo(nome, texto) {
+  if (nome === undefined) { pedirNome(); return; }
+  nome = nomeValido(nome);
+  if (!nome) return;
+  estado.meus[nome] = texto ?? `// ${nome}\nconsole.log("Oi do ${nome}!")\n`;
+  ed.esquecer("meus/" + nome);
+  abrir("meus/" + nome);
+}
+
+function apagar(nome) {
+  if (!confirm(`Apagar ${nome}? Não dá para desfazer.`)) return;
+  const id = "meus/" + nome;
+  delete estado.meus[nome];
+  delete estado.entradas[id];
+  ed.esquecer(id);
+  fecharAba(id);
+  desenharLista();
+  salvar();
+}
+
+function itemLista(id, rotulo, extra) {
+  const li = document.createElement("li");
+  li.className = id === estado.aberto ? "ativo" : "";
+  li.innerHTML = `<button class="abrir"><span aria-hidden="true">🎭</span><span class="nome"></span></button>`;
+  const b = li.querySelector(".abrir");
+  b.querySelector(".nome").textContent = rotulo;
+  b.title = dicaDe(id);
+  if (id === estado.aberto) b.setAttribute("aria-current", "true");
+  if (extra) li.appendChild(extra);
+  b.addEventListener("click", () => abrir(id));
+  return li;
+}
+
+let pedidoLista = 0;
+function desenharListaDepois() { cancelAnimationFrame(pedidoLista); pedidoLista = requestAnimationFrame(desenharLista); }
+function desenharLista() {
+  const meus = $("#lista-meus"), ex = $("#lista-exemplos");
+  meus.textContent = ""; ex.textContent = "";
+  for (const nome of Object.keys(estado.meus).sort()) {
+    const x = document.createElement("button");
+    x.className = "x"; x.textContent = "🗑"; x.title = "Apagar"; x.setAttribute("aria-label", `Apagar ${nome}`);
+    x.addEventListener("click", (e) => { e.stopPropagation(); apagar(nome); });
+    meus.appendChild(itemLista("meus/" + nome, nome, x));
+  }
+  for (const nome of Object.keys(DADOS.exemplos)) {
+    let marca = null;
+    if (nome in estado.editados) {
+      marca = document.createElement("span");
+      marca.className = "editado"; marca.textContent = "●"; marca.title = "Você mudou este exemplo";
+    }
+    ex.appendChild(itemLista("exemplos/" + nome, nome, marca));
+  }
+  const restaurar = $("#bt-restaurar");
+  if (restaurar) restaurar.hidden = !(pasta(estado.aberto) === "exemplos" && nomeDe(estado.aberto) in estado.editados);
+}
+
+function desenharAbas() {
+  const abas = $("#abas");
+  abas.textContent = "";
+  for (const id of estado.abas) {
+    const d = document.createElement("div");
+    d.className = "aba" + (id === estado.aberto ? " ativo" : "");
+    d.title = id;
+    d.innerHTML = `<span aria-hidden="true">🎭</span><span class="nome"></span><button class="x" title="Fechar">×</button>`;
+    d.querySelector(".nome").textContent = nomeDe(id);
+    d.tabIndex = 0;
+    d.setAttribute("role", "button");
+    d.setAttribute("aria-label", `Aba ${nomeDe(id)}` + (id === estado.aberto ? " (aberta)" : ""));
+    d.querySelector(".x").setAttribute("aria-label", `Fechar ${nomeDe(id)}`);
+    d.addEventListener("keydown", (e) => { if (e.target === d && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); abrir(id); } });
+    d.addEventListener("click", () => abrir(id));
+    d.addEventListener("auxclick", (e) => { if (e.button === 1) fecharAba(id); });
+    d.querySelector(".x").addEventListener("click", (e) => { e.stopPropagation(); fecharAba(id); });
+    abas.appendChild(d);
+  }
+  const r = document.createElement("button");
+  r.id = "bt-restaurar"; r.textContent = "↺ restaurar original"; r.title = "Desfazer suas mudanças neste exemplo";
+  r.addEventListener("click", () => {
+    const n = nomeDe(estado.aberto);
+    if (!confirm(`Voltar ${n} ao original?`)) return;
+    delete estado.editados[n];
+    ed.trocarTexto(estado.aberto, DADOS.exemplos[n]);
+    desenharLista();
+    salvar();
+  });
+  abas.appendChild(r);
+  desenharLista();
+}
+
+// ---------------- painel de baixo ----------------
+function mostrarAba(nome) {
+  for (const b of $$(".abas-painel [data-aba]")) {
+    b.classList.toggle("ativo", b.dataset.aba === nome);
+    b.setAttribute("aria-selected", b.dataset.aba === nome ? "true" : "false");
+    if (b.dataset.aba === nome) b.classList.remove("novidade");
+  }
+  for (const el of $$(".conteudo-painel [data-aba]")) el.hidden = el.dataset.aba !== nome;
+  if (nome === "python" && pyEditor && pyEditor.layout) pyEditor.layout();
+}
+function avisarAba(nome) {
+  const b = $(`.abas-painel [data-aba="${nome}"]`);
+  if (!b.classList.contains("ativo")) b.classList.add("novidade");
+}
+
+const LIMITE = 200000;
+let fila = [], tamanho = 0, cortado = false, pedidoSaida = 0;
+function escrever(classe, s) {
+  if (cortado) return;
+  if (tamanho + s.length > LIMITE) {
+    s = s.slice(0, Math.max(0, LIMITE - tamanho));
+    fila.push([classe, s], ["aviso", "\n✂️ Saída grande demais: parei de mostrar. Se for um loop infinito, aperte ■ Parar.\n"]);
+    cortado = true;
+  } else fila.push([classe, s]);
+  tamanho += s.length;
+  if (!pedidoSaida) pedidoSaida = requestAnimationFrame(despejar);
+}
+function despejar() {
+  pedidoSaida = 0;
+  const pre = $("#saida"), embaixo = pre.scrollHeight - pre.scrollTop - pre.clientHeight < 40;
+  const frag = document.createDocumentFragment();
+  for (const [classe, s] of fila) {
+    const ultimo = frag.lastChild || pre.lastChild;
+    if (ultimo && ultimo.className === classe) ultimo.textContent += s;   // junta pedaços seguidos
+    else { const sp = document.createElement("span"); sp.className = classe; sp.textContent = s; frag.appendChild(sp); }
+  }
+  fila = [];
+  pre.appendChild(frag);
+  if (embaixo) pre.scrollTop = pre.scrollHeight;
+  if (!$('.abas-painel [data-aba="saida"]').classList.contains("ativo")) avisarAba("saida");
+}
+function limparSaida() {
+  fila = []; tamanho = 0; cortado = false;
+  $("#saida").textContent = "";
+}
+
+const PAGINA_VAZIA = `<!DOCTYPE html><meta charset="utf-8"><body style="font:15px system-ui;color:#666;
+  display:grid;place-items:center;height:90vh;margin:0;text-align:center">
+  <div>🌐 Este programa não tem HTML.<br><br>Coloque tags como <code>&lt;h1&gt;Oi&lt;/h1&gt;</code>
+  ou um bloco <code>&lt;style&gt;</code> no seu .larp<br>e a página aparece aqui.</div></body>`;
+
+// ---------------- o Python (Pyodide num Web Worker) ----------------
+let worker = null, pronto = false, rodando = false, pendente = false, inicio = 0, temHtml = false;
+const status = (t) => { $("#st-python").textContent = t; };
+
+function iniciarWorker() {
+  pronto = false;
+  status("⏳ Carregando o Python…");
+  const url = URL.createObjectURL(new Blob([$("#codigo-worker").textContent], { type: "text/javascript" }));
+  worker = new Worker(url);
+  worker.onmessage = aoMensagem;
+  worker.onerror = () => falhou("o navegador não deixou o Python começar");
+  worker.postMessage({ tipo: "iniciar", arquivos: DADOS.arquivos });
+}
+
+function falhou(motivo) {
+  status("❌ Python não carregou");
+  escrever("err", `❌ Não consegui carregar o Python (${motivo}).\n   Confira a internet e recarregue a página.\n`);
+  rodando = pendente = false;
+  botoes();
+}
+
+function aoMensagem(ev) {
+  const m = ev.data;
+  if (m.tipo === "out") escrever("out", m.s);
+  else if (m.tipo === "err") escrever("err", m.s);
+  else if (m.tipo === "eco") escrever("eco", m.s + "\n");
+  else if (m.tipo === "faltou") escrever("aviso", "\n⌨️ O programa pediu uma entrada e a caixa ENTRADA acabou. Escreva as respostas lá (uma por linha) e rode de novo.\n");
+  else if (m.tipo === "py") {
+    ed.python(m.codigo);
+    temHtml = !!m.html;
+    $("#pagina").srcdoc = m.html || PAGINA_VAZIA;
+    if (temHtml) avisarAba("pagina");
+  } else if (m.tipo === "fim") terminou();
+  else if (m.tipo === "pronto") {
+    pronto = true;
+    status("● Python pronto");
+    if (pendente) { pendente = false; enviar(); }
+  } else if (m.tipo === "falhou") falhou(m.s);
+  else if (m.tipo === "personagem") $("#st-personagem").textContent = "🎭 " + (m.nome || "neutro");
+}
+
+let timerPersonagem = 0;
+function pedirPersonagem(linha) {
+  clearTimeout(timerPersonagem);
+  timerPersonagem = setTimeout(() => {
+    if (pronto && !rodando) worker.postMessage({ tipo: "personagem", linha });
+  }, 250);
+}
+
+function botoes() {
+  $("#bt-rodar").disabled = rodando;
+  $("#bt-parar").disabled = !rodando && !pendente;
+}
+
+function rodar() {
+  if (rodando) return;
+  estado.entradas[estado.aberto] = $("#entrada").value;
+  salvar();
+  limparSaida();
+  if (monacoOk && editor.getModel()) monaco.editor.setModelMarkers(editor.getModel(), "larp", []);
+  temHtml = false;
+  for (const b of $$(".abas-painel button")) b.classList.remove("novidade");
+  mostrarAba("saida");
+  if (!pronto) {
+    pendente = true;
+    escrever("aviso", "⏳ Esperando o Python carregar (na primeira vez demora uns segundos)…\n");
+    botoes();
+    return;
+  }
+  enviar();
+}
+
+function enviar() {
+  rodando = true;
+  botoes();
+  status("▶ Rodando…");
+  $("#st-tempo").textContent = "";
+  inicio = performance.now();
+  worker.postMessage({ tipo: "rodar", fonte: ed.texto(), entrada: $("#entrada").value,
+                       brainrot: $("#op-brainrot").checked, hardcore: $("#op-hardcore").checked });
+}
+
+function marcarErro() {
+  const pre = $("#saida");
+  const alvo = [...pre.children].find((sp) => /📍 linha \d+ do seu \.larp/.test(sp.textContent));
+  if (!alvo) return false;
+  const n = Number(alvo.textContent.match(/📍 linha (\d+) do seu \.larp/)[1]);
+  const antes = pre.textContent.split("📍")[0].trim().split("\n").slice(-3).join("\n");
+  const [a, depois] = alvo.textContent.split(/📍 linha \d+ do seu \.larp/);
+  const bt = document.createElement("button");
+  bt.className = "ir-linha";
+  bt.textContent = `📍 linha ${n} do seu .larp`;
+  bt.title = "Ir até essa linha no editor";
+  bt.addEventListener("click", () => irParaLinha(n));
+  alvo.textContent = a;
+  alvo.append(bt, depois);
+  if (monacoOk && editor.getModel() && n <= editor.getModel().getLineCount()) {
+    const m = editor.getModel();
+    monaco.editor.setModelMarkers(m, "larp", [{ startLineNumber: n, endLineNumber: n, startColumn: 1,
+      endColumn: m.getLineMaxColumn(n), message: antes, severity: monaco.MarkerSeverity.Error }]);
+  }
+  status(`❌ Erro na linha ${n}. Clique no 📍 da SAÍDA para ir até ela.`);
+  return true;
+}
+
+function irParaLinha(n) {
+  if (monacoOk) {
+    editor.revealLineInCenter(n);
+    editor.setSelection({ startLineNumber: n, startColumn: 1, endLineNumber: n, endColumn: editor.getModel().getLineMaxColumn(n) });
+  } else {
+    const linhas = editor.value.split("\n");
+    const ini = linhas.slice(0, n - 1).reduce((t, l) => t + l.length + 1, 0);
+    editor.setSelectionRange(ini, ini + (linhas[n - 1] || "").length);
+  }
+  ed.foco();
+}
+
+function contarAura(errou) {
+  if (!$("#op-brainrot").checked) return;
+  estado.aura = (estado.aura || 0) + (errou ? -1000 : 67);
+  mostrarAura();
+  salvar();
+}
+function mostrarAura() {
+  const a = $("#aura");
+  a.hidden = !$("#op-brainrot").checked;
+  a.textContent = `✨ aura: ${estado.aura || 0}`;
+  document.body.classList.toggle("brainrot", $("#op-brainrot").checked);
+}
+
+function terminou() {
+  rodando = false;
+  botoes();
+  status("● Python pronto");
+  $("#st-tempo").textContent = `✓ terminou em ${((performance.now() - inicio) / 1000).toFixed(2).replace(".", ",")} s`;
+  despejar();
+  const errou = marcarErro();
+  contarAura(errou || /📉 -1000 aura/.test($("#saida").textContent));
+  if (temHtml && !errou) mostrarAba("pagina");   // tem HTML? abre a PÁGINA. Senão fica na SAÍDA.
+}
+
+function parar() {
+  if (worker) worker.terminate();
+  const estava = rodando || pendente;
+  rodando = pendente = false;
+  if (estava) escrever("aviso", "\n■ Programa parado. Recarregando o Python…\n");
+  $("#st-tempo").textContent = "";
+  iniciarWorker();
+  botoes();
+}
+
+// ---------------- botões e atalhos ----------------
+function comecar() {
+  for (const id of [...estado.abas]) if (!existe(id)) estado.abas = estado.abas.filter((a) => a !== id);
+  if (!existe(estado.aberto)) estado.aberto = estado.abas[0] || "exemplos/exemplo.larp";
+  if (!estado.abas.includes(estado.aberto)) estado.abas.push(estado.aberto);
+  abrir(estado.aberto);
+  aplicarTema(estado.tema);
+  aplicarFonte(estado.fonte);
+  if (!estado.viuBoasVindas) boasVindas(true);
+  ed.python("# Rode o programa para ver aqui o Python gerado.");
+  $("#pagina").srcdoc = PAGINA_VAZIA;
+}
+
+$("#bt-rodar").addEventListener("click", rodar);
+$("#bt-parar").addEventListener("click", parar);
+$("#bt-limpar").addEventListener("click", limparSaida);
+
+// ---------- ajuda: todas as linguagens (clique = insere o exemplo) e o elenco brainrot ----------
+const LINGUAGENS = [
+  ["Python", "python", 'print("oi")'],
+  ["JavaScript / TypeScript", "javascript", 'console.log("oi")'],
+  ["Java", "java", 'System.out.println("oi");'],
+  ["C / C++", "cpp", 'cout << "oi" << endl;'],
+  ["C#", "csharp", 'Console.WriteLine("oi");'],
+  ["Rust", "rust", 'println!("{}", "oi");'],
+  ["Go", "go", 'fmt.Println("oi")'],
+  ["Ruby", "ruby", 'puts "oi"'],
+  ["PHP", "php", 'echo "oi";'],
+  ["Kotlin / Swift", "kotlin", 'println("oi")'],
+  ["Lua", "lua", 'local nome = "oi"\nprint(nome)'],
+  ["Haskell", "haskell", 'putStrLn "oi"'],
+  ["Elixir", "elixir", 'IO.puts "oi"'],
+  ["Português", "portugues", 'escreva("oi")'],
+  ["Brainfuck", "", "++++++++++[>+++++++++++<-]>+.------."],
+  ["HTML", "", "<h1>Oi do HTML</h1>"],
+  ["CSS", "", "<style>h1 { color: gold; text-align: center; }</style>"],
+];
+const ELENCO = [
+  ["🪵 Tung Tung Tung Sahur", "no fim de todo programa que deu certo"],
+  ["🦈 Tralalero Tralala", "a cada volta de loop"],
+  ["💃 Ballerina Cappuccina", "quando uma função devolve um valor (67 = SIX SEVEN!)"],
+  ["🐊✈️ Bombardiro Crocodilo", "quando um catch pega um erro"],
+  ["🌴 Brr Brr Patapim", "nome que não existe"],
+  ["🟡 Verity", "sugere o nome certo"],
+  ["🌵🐘 Lirilì Larilà", "no sleep(): para o tempo"],
+  ["☕🗡️ Cappuccino Assassino", "divisão por zero"],
+  ["🦐🐱 Trippi Troppi", "tipos misturados"],
+  ["🐒🍌 Chimpanzini Bananini", "posição que não existe na lista"],
+  ["🐄🪐 La Vaca Saturno Saturnita", "recursão infinita"],
+  ["🪿✈️ Bombombini Gusini", "throw que ninguém pegou"],
+];
+function inserirNoEditor(codigo) {
+  if (monacoOk) {
+    const sel = editor.getSelection();
+    const pos = sel.getStartPosition();
+    const comeco = pos.column > 1 ? "\n" : "";        // no meio de uma linha? pula para a próxima
+    editor.executeEdits("ajuda", [{ range: sel, text: comeco + codigo + "\n", forceMoveMarkers: true }]);
+  } else {
+    editor.setRangeText(codigo + "\n", editor.selectionStart, editor.selectionEnd, "end");
+    guardarTexto(estado.aberto, editor.value);
+  }
+  ed.foco();
+  status("✍️ Exemplo colocado no editor. Aperte Ctrl+Enter para rodar.");
+}
+for (const [nome, larpAs, codigo] of LINGUAGENS) {
+  const b = document.createElement("button");
+  b.className = "ling";
+  b.innerHTML = "<b></b><code></code>" + (larpAs ? "<small></small>" : "");
+  b.querySelector("b").textContent = nome;
+  b.querySelector("code").textContent = codigo;
+  if (larpAs) b.querySelector("small").textContent = `no hardcore: larp as ${larpAs}`;
+  b.setAttribute("aria-label", `Inserir exemplo de ${nome}: ${codigo}`);
+  b.addEventListener("click", () => inserirNoEditor(codigo));
+  $("#lista-linguagens").appendChild(b);
+}
+for (const [nome, quando] of ELENCO) {
+  const li = document.createElement("li");
+  li.innerHTML = "<b></b>: <span></span>";
+  li.querySelector("b").textContent = nome;
+  li.querySelector("span").textContent = quando;
+  $("#lista-brainrot").appendChild(li);
+}
+$("#bt-novo").addEventListener("click", () => novoArquivo());
+for (const b of $$(".abas-painel [data-aba]")) b.addEventListener("click", () => mostrarAba(b.dataset.aba));
+$("#entrada").addEventListener("input", () => { estado.entradas[estado.aberto] = $("#entrada").value; salvar(); });
+
+for (const [id, chave] of [["#op-brainrot", "brainrot"], ["#op-hardcore", "hardcore"]]) {
+  $(id).checked = !!estado[chave];
+  $(id).addEventListener("change", () => { estado[chave] = $(id).checked; salvar(); mostrarAura(); });
+}
+mostrarAura();
+
+// ---------- aparência e acessibilidade ----------
+function aplicarTema(t) {
+  estado.tema = t in TEMAS_MONACO ? t : "escuro";
+  document.documentElement.dataset.tema = estado.tema;
+  for (const r of $$('input[name="tema"]')) r.checked = r.value === estado.tema;
+  if (monacoOk) monaco.editor.setTheme(TEMAS_MONACO[estado.tema]);
+  salvar();
+}
+function aplicarFonte(n) {
+  estado.fonte = Math.min(28, Math.max(10, n));
+  document.documentElement.style.setProperty("--tam", estado.fonte + "px");
+  document.documentElement.style.setProperty("--tam-saida", (estado.fonte - 1) + "px");
+  $("#fonte-valor").textContent = estado.fonte + " px";
+  if (monacoOk) { editor.updateOptions({ fontSize: estado.fonte }); pyEditor.updateOptions({ fontSize: estado.fonte - 1 }); }
+  salvar();
+}
+for (const r of $$('input[name="tema"]')) r.addEventListener("change", () => aplicarTema(r.value));
+$("#fonte-menos").addEventListener("click", () => aplicarFonte(estado.fonte - 1));
+$("#fonte-mais").addEventListener("click", () => aplicarFonte(estado.fonte + 1));
+$("#op-leitor").checked = !!estado.leitor;
+$("#op-leitor").addEventListener("change", () => {
+  estado.leitor = $("#op-leitor").checked;
+  if (monacoOk) editor.updateOptions({ accessibilitySupport: estado.leitor ? "on" : "auto" });
+  salvar();
+});
+document.documentElement.dataset.tema = estado.tema;
+document.documentElement.style.setProperty("--tam", estado.fonte + "px");
+document.documentElement.style.setProperty("--tam-saida", (estado.fonte - 1) + "px");
+
+function boasVindas(mostrar) {
+  $("#boas-vindas").hidden = !mostrar;
+  if (mostrar) $("#bv-ok").focus();
+}
+$("#bv-ok").addEventListener("click", () => { estado.viuBoasVindas = true; salvar(); boasVindas(false); ed.foco(); });
+$("#boas-vindas").addEventListener("keydown", (e) => { if (e.key === "Escape") $("#bv-ok").click(); });
+$("#bt-dicas").addEventListener("click", () => boasVindas(true));
+$("#pular").addEventListener("click", (e) => { e.preventDefault(); ed.foco(); });
+
+// dica de cada exemplo = o primeiro comentário dele
+function dicaDe(id) {
+  const primeira = (textoDe(id) || "").split("\n").find((l) => l.trim()) || "";
+  const m = primeira.match(/^\s*(?:\/\/|#)\s*(.+)/);
+  return m ? `${nomeDe(id)}: ${m[1]}` : nomeDe(id);
+}
+
+$("#bt-baixar").addEventListener("click", () => {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([ed.texto()], { type: "text/plain;charset=utf-8" }));
+  a.download = nomeDe(estado.aberto);
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+});
+$("#bt-abrir").addEventListener("click", () => $("#arquivo").click());
+$("#arquivo").addEventListener("change", async (e) => {
+  const f = e.target.files[0];
+  if (!f) return;
+  const texto = (await f.text()).replace(/^﻿/, "");
+  const nome = nomeValido(f.name);
+  if (nome in estado.meus && !confirm(`Já existe ${nome}. Substituir?`)) return;
+  novoArquivo(nome, texto);
+  e.target.value = "";
+});
+
+// barra de atividades: clicar no ícone ativo esconde/mostra a lateral (igual ao VS Code)
+const celular = () => matchMedia("(max-width: 760px)").matches;
+for (const b of $$("#atividade button")) {
+  b.addEventListener("click", () => {
+    const jaAtivo = b.classList.contains("ativo");
+    const aberta = celular() ? document.body.classList.contains("com-lateral") : !document.body.classList.contains("sem-lateral");
+    const abrirLateral = !(jaAtivo && aberta);
+    document.body.classList.toggle(celular() ? "com-lateral" : "sem-lateral", celular() ? abrirLateral : !abrirLateral);
+    for (const o of $$("#atividade button")) o.classList.toggle("ativo", o === b);
+    for (const s of $$("#lateral section")) s.hidden = s.dataset.vista !== b.dataset.vista;
+  });
+}
+
+window.addEventListener("keydown", (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key === "Enter") { e.preventDefault(); rodar(); }
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") { e.preventDefault(); status("💾 Salvo (o LarpStudios salva sozinho)"); setTimeout(() => status(pronto ? "● Python pronto" : "⏳ Carregando o Python…"), 1500); }
+});
+
+// divisor arrastável entre o editor e o painel
+(() => {
+  const div = $("#divisor"), centro = $("#centro");
+  if (estado.painel) document.documentElement.style.setProperty("--painel", estado.painel);
+  div.addEventListener("pointerdown", (e) => {
+    div.setPointerCapture(e.pointerId);
+    div.classList.add("arrastando");
+    const mover = (ev) => {
+      const r = centro.getBoundingClientRect();
+      const h = Math.min(Math.max(r.bottom - ev.clientY, 80), r.height - 120);
+      estado.painel = h + "px";
+      document.documentElement.style.setProperty("--painel", estado.painel);
+    };
+    const soltar = () => { div.classList.remove("arrastando"); div.removeEventListener("pointermove", mover); salvar(); };
+    div.addEventListener("pointermove", mover);
+    div.addEventListener("pointerup", soltar, { once: true });
+  });
+})();
+
+// ---------------- começar ----------------
+iniciarWorker();
+if (typeof require === "undefined") {
+  status("⚠️ Editor simples (o do VS Code não carregou)");
+  iniciarTextarea();
+} else {
+  const VS = "https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/min/vs";
+  window.MonacoEnvironment = { getWorkerUrl: () => "data:text/javascript;charset=utf-8," + encodeURIComponent(
+    `self.MonacoEnvironment = { baseUrl: "${VS}/../" }; importScripts("${VS}/base/worker/workerMain.js");`) };
+  require.config({ paths: { vs: VS } });
+  require(["vs/editor/editor.main"], iniciarMonaco, iniciarTextarea);
+}
+</script>
+</body>
+</html>

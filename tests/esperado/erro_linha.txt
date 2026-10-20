@@ -1,0 +1,3 @@
+linha 1 ok
+🎭 O JavaScript diria 'undefined' e seguiria em frente. Eu não: 'variavelQueNaoExiste' não existe.
+📍 linha 7 do seu .larp: console.log(variavelQueNaoExiste)

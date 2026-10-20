@@ -1,0 +1,10 @@
+# Python
+__pycache__/
+*.pyc
+
+# Páginas geradas quando um .larp tem HTML/CSS (ex.: exemplos/misturado.html)
+exemplos/*.html
+
+# Sistema
+.DS_Store
+Thumbs.db

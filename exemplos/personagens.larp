@@ -1,0 +1,12 @@
+larp as python:
+def dobro(x):
+    return x * 2
+print(dobro(4))
+
+larp as javascript
+console.log("agora sou JavaScript")
+
+larp as tungtung
+larp as java {
+    System.out.println("agora sou Java");
+}
