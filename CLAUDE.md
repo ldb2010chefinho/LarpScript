@@ -71,6 +71,11 @@ continuam são juntadas por `juntar()`), generics, strings coladas, BOM, `--temp
    boas-vindas, campo de nome no lugar de prompt(). Próximas ideias: input() interativo, publicar no Pages.
 
 6. [feito] Identidade visual "Coxia" (pedido: tirar a cara de IA). Ver seção abaixo.
+7. [feito] Dialeto brainrot (o diferencial): lista DIALETO no tradutor (sahur=print, ballerina=função,
+   cappuccina=return, patapim/brr brr=if/else, tralala/tralalero=for/while, bombardiro/crocodilo=try/catch,
+   bombombini=throw, lirili/larila=let/const, mewing/corta/segue, sigma/npc/ohio). Funções-meme no runtime.
+   Lapitos (larp_lapitos.py): amigo do dono que "trocou as tabelas do Volta para inglês"; traduz prints
+   PT→EN offline. Personagem "Brainrot" no hardcore.
 
 ## Identidade visual do LarpStudios (siga sempre; não volte ao visual genérico)
 - Tema: bastidores de teatro. NADA de gradiente roxo/azul, Inter, cards genéricos ou emoji na interface

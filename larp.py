@@ -171,6 +171,8 @@ def executar(py, ns, arq, fonte, brainrot, tempo=0):
     try:
         exec(compile(py, arq, "exec"), ns)
         if brainrot:
+            if rt.AURA:
+                print(f"✨ Aura final: {rt.AURA}")
             print(SAHUR)
         return True
     except KeyboardInterrupt:

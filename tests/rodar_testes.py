@@ -32,6 +32,8 @@ CASOS = [
     ("erro_linha", "erro_linha.larp", [], ""),
     ("oi", "oi.larp", [], ""),
     ("todas_linguagens", "todas_linguagens.larp", [], ""),
+    ("brainrot", "brainrot.larp", [], ""),
+    ("brainrot_com_brainrot", "brainrot.larp", ["--brainrot"], ""),
     ("melhorias", "melhorias.larp", ["--brainrot"], ""),
     ("dicas_erro", "dicas_erro.larp", [], ""),
     ("dicas_erro_brainrot", "dicas_erro.larp", ["--brainrot"], ""),
@@ -42,6 +44,7 @@ CASOS = [
     ("exemplo_py", "exemplo.larp", ["--py"], ""),
     ("novos_py", "novos.larp", ["--py", "--brainrot"], ""),
     ("melhorias_py", "melhorias.larp", ["--py"], ""),
+    ("brainrot_py", "brainrot.larp", ["--py"], ""),
 ]
 
 

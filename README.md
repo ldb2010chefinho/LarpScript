@@ -82,6 +82,36 @@ fica em **https://ldb2010chefinho.github.io/LarpScript/**.
 - **Brainfuck:** uma linha só com `+ - < > [ ] . ,`
 - **HTML/CSS:** `<style>...</style>` e tags como `<h1>Oi</h1>` viram uma página que abre no navegador
 
+## O diferencial: o dialeto brainrot
+
+Na LARP Script os personagens brainrot **são** a linguagem. Funciona sempre (o `--brainrot`
+só liga os comentários deles).
+
+| Escreva | Quem é | Vira |
+|---|---|---|
+| `tung tung tung sahur "oi"` ou `sahur("oi")` | 🪵 o tambor grita | imprimir (`print`) |
+| `ballerina dobro(x) { ... }` | 💃 a coreografia | função |
+| `cappuccina x * 2` | ☕ a entrega | `return` |
+| `patapim (x > 3) {` / `} brr brr patapim (...) {` / `} brr brr {` | 🌴 Patapim decide | `if` / `else if` / `else` |
+| `tralala 3 vezes {` / `tralala i de 1 até 10 {` | 🦈 repetir | `for` |
+| `tralalero (cond) {` | 🦈 corre em círculos | `while` |
+| `bombardiro {` ... `} crocodilo (e) {` | 🐊✈️ tenta e pega | `try` / `catch` |
+| `bombombini "deu ruim"` | 🪿✈️ joga lá de cima | `throw` |
+| `lirili x = 5` / `larila MAX = 10` | 🌵🐘 guarda valores | `let` / `const` |
+| `mewing` / `corta` / `segue` | boca fechada / corta a cena / segue o baile | `pass` / `break` / `continue` |
+| `sigma` / `npc` / `ohio` | memes viram valores | `True` / `False` / `None` |
+
+**Funções-meme:** `sixseven()` (devolve 67 🤲), `fanum(lista)` (Fanum tax: rouba o último item),
+`verity(x)` (Verity sabe tudo sobre o valor), `rizz(texto)`, `skibidi(lista)` (escolhe um aleatório),
+`farmar_aura(n)` / `aura()`, `chimpanzini("pergunta")` (é o input). No `--brainrot`, todo **67**
+impresso é comemorado com SIX SEVEN, e no fim aparece a sua aura final.
+
+**🔤 Lapitos**, o amigo que trocou as tabelas do Volta para inglês: `lapitos("Bom dia")` imprime
+`Good morning`, e `larp as lapitos` faz **todos** os prints saírem em inglês até o próximo `larp as`.
+Ele traduz sem internet, com um dicionário próprio, então o inglês às vezes sai meio brainrot.
+
+Veja tudo funcionando em `exemplos/brainrot.larp`. No `--hardcore`, avise com `larp as brainrot`.
+
 ## Personagens
 
 ```

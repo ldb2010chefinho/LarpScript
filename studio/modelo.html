@@ -287,7 +287,10 @@
         <h3>Linguagens que a LARP finge ser</h3>
         <p>Clique numa delas para colocar o exemplo no editor. Pode misturar à vontade!</p>
         <div id="lista-linguagens"></div>
-        <h3>Elenco brainrot (ligue 🪵 Brainrot)</h3>
+        <h3>Dialeto brainrot</h3>
+        <p>Na LARP Script os personagens <b>são</b> a linguagem. Clique para inserir.</p>
+        <div id="lista-dialeto"></div>
+        <h3>Elenco brainrot (ligue Brainrot)</h3>
         <ul id="lista-brainrot" class="lista-brainrot"></ul>
         <h3>Painel de baixo</h3>
         <p><b>SAÍDA</b>: o que o programa imprimiu (console.log, puts, print...).</p>
@@ -432,6 +435,11 @@ for (let i = 1; i <= 3; i++) {
 let nome = prompt("Qual é o seu nome? ")
 console.log(\`Prazer, \${nome}!\`)
 
+// E o diferencial: fale brainrot! (veja o exemplo brainrot.larp)
+patapim (dobro(30) + 7 == 67) {
+    tung tung tung sahur "SIX SEVEN!"
+}
+
 // Quer uma página? Abra o exemplo misturado.larp ou digite "pagina" + Ctrl+Espaço
 `;
 
@@ -527,6 +535,9 @@ function registrarLarp() {
       "any", "number", "str", "i32", "i64", "u32", "u64", "f32", "f64", "Int", "Double", "Boolean"],
     consts: ["true", "false", "null", "nil", "undefined", "None", "True", "False", "verdadeiro", "falso", "nulo"],
     prints: ["puts", "echo", "escreva", "print", "println", "cout", "printf", "prompt", "input"],
+    brainrot: ["tung", "sahur", "ballerina", "cappuccina", "patapim", "brr", "tralala", "tralalero", "vezes",
+      "bombardiro", "crocodilo", "bombombini", "lirili", "larila", "mewing", "corta", "segue", "sigma", "npc",
+      "ohio", "lapitos", "sixseven", "skibidi", "fanum", "verity", "rizz", "farmar_aura", "aura", "chimpanzini"],
     tokenizer: {
       root: [
         [/\b(larp)(\s+)(as)\b/, ["larp", "", "larp"]],
@@ -542,8 +553,8 @@ function registrarLarp() {
         [/`/, "string", "@crase"],
         [/(console\.log|System\.out\.println|System\.out\.print|fmt\.Println|println!)/, "print"],
         [/\d+(\.\d+)?/, "number"],
-        [/[A-Za-z_$@][\w$]*(?=\s*\()/, { cases: { "@controle": "keyword", "@decl": "decl", "@prints": "print", "@default": "function" } }],
-        [/[A-Za-z_$@][\w$]*/, { cases: { "@controle": "keyword", "@decl": "decl", "@tipos": "type", "@consts": "constant", "@prints": "print", "@default": "identifier" } }],
+        [/[A-Za-z_$@][\w$]*(?=\s*\()/, { cases: { "@brainrot": "larp", "@controle": "keyword", "@decl": "decl", "@prints": "print", "@default": "function" } }],
+        [/[A-Za-z_$@][\w$]*/, { cases: { "@brainrot": "larp", "@controle": "keyword", "@decl": "decl", "@tipos": "type", "@consts": "constant", "@prints": "print", "@default": "identifier" } }],
         [/=>|->|:=|\+\+|--|[=!<>]=?|&&|\|\||[+\-*\/%]/, "operator"],
       ],
       bloco: [[/[^*]+/, "comment"], [/\*\//, "comment", "@pop"], [/\*/, "comment"]],
@@ -1021,6 +1032,46 @@ const LINGUAGENS = [
   ["HTML", "", "<h1>Oi do HTML</h1>"],
   ["CSS", "", "<style>h1 { color: gold; text-align: center; }</style>"],
 ];
+const DIALETO = [
+  ["Imprimir: Tung Tung Tung Sahur", `tung tung tung sahur "Oi!"
+sahur("Oi de novo")`],
+  ["Função: Ballerina + Cappuccina", `ballerina dobro(x) {
+    cappuccina x * 2
+}
+sahur(dobro(21))`],
+  ["Decidir: Patapim / Brr Brr", `patapim (10 > 5) {
+    sahur("maior")
+} brr brr {
+    sahur("menor")
+}`],
+  ["Repetir: Tralala", `tralala 3 vezes {
+    sahur("tralala!")
+}
+tralala i de 1 até 3 {
+    sahur(i)
+}`],
+  ["Enquanto: Tralalero", `lirili n = 0
+tralalero (n < 3) {
+    n++
+}
+sahur(n)`],
+  ["Erros: Bombardiro Crocodilo", `bombardiro {
+    bombombini "caiu a bomba"
+} crocodilo (e) {
+    sahur("pegou: " + str(e))
+}`],
+  ["Variáveis: Lirilì Larilà", `lirili vida = 3
+larila MAXIMO = 10`],
+  ["Memes: 67, fanum, verity, rizz, aura", `sahur(60 + 7)
+lirili lanche = ["pizza", "batata"]
+fanum(lanche)
+verity(lanche)
+sahur(rizz("sigma"))
+farmar_aura(1000)`],
+  ["Lapitos: tudo em inglês", `lapitos("Bom dia, meu nome é Tralalero")
+larp as lapitos
+sahur("Olá mundo! Eu gosto de pizza")`],
+];
 const ELENCO = [
   ["🪵 Tung Tung Tung Sahur", "no fim de todo programa que deu certo"],
   ["🦈 Tralalero Tralala", "a cada volta de loop"],
@@ -1034,6 +1085,7 @@ const ELENCO = [
   ["🐒🍌 Chimpanzini Bananini", "posição que não existe na lista"],
   ["🐄🪐 La Vaca Saturno Saturnita", "recursão infinita"],
   ["🪿✈️ Bombombini Gusini", "throw que ninguém pegou"],
+  ["🔤 Lapitos", "o amigo que troca tudo para inglês (como fez com as tabelas do Volta)"],
 ];
 function inserirNoEditor(codigo) {
   if (monacoOk) {
@@ -1058,6 +1110,17 @@ for (const [nome, larpAs, codigo] of LINGUAGENS) {
   b.setAttribute("aria-label", `Inserir exemplo de ${nome}: ${codigo}`);
   b.addEventListener("click", () => inserirNoEditor(codigo));
   $("#lista-linguagens").appendChild(b);
+}
+for (const [nome, codigo] of DIALETO) {
+  const b = document.createElement("button");
+  b.className = "ling";
+  b.innerHTML = "<b></b><code></code>";
+  b.querySelector("b").textContent = nome;
+  const linhas = codigo.split(String.fromCharCode(10));
+  b.querySelector("code").textContent = linhas[0] + (linhas.length > 1 ? " …" : "");
+  b.setAttribute("aria-label", `Inserir exemplo: ${nome}`);
+  b.addEventListener("click", () => inserirNoEditor(codigo));
+  $("#lista-dialeto").appendChild(b);
 }
 for (const [nome, quando] of ELENCO) {
   const li = document.createElement("li");

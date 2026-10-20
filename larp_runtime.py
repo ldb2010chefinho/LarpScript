@@ -11,6 +11,8 @@ import sys
 import time
 import types
 
+from larp_lapitos import ingles
+
 BRAINROT = False
 VERBOSE = False
 
@@ -158,11 +160,82 @@ def bombardiro():
 
 
 def entrar(nome):
+    global LAPITOS
+    LAPITOS = nome == "lapitos"                  # 'larp as lapitos' liga; outro personagem desliga
+    if LAPITOS:
+        print("🔤 Lapitos chegou e trocou tudo para inglês (igual fez com as tabelas do Volta)")
+        return
     if nome in FALAS:
         if BRAINROT:
             print(FALAS[nome])
     elif BRAINROT or VERBOSE:
         print(f"🎭 Entrando no personagem: {nome}... *ajeita o figurino*")
+
+
+# ---------- dialeto brainrot: funções-meme ----------
+LAPITOS = False
+AURA = 0
+
+
+def imprimir(*a, sep=" ", end="\n", file=None, flush=False):
+    """O print de todo programa .larp: o Lapitos traduz e o 67 sempre é comemorado."""
+    if LAPITOS and file is None:
+        a = [ingles(str(x)) for x in a]
+    print(*a, sep=sep, end=end, file=file, flush=flush)
+    if BRAINROT and file is None and any(type(x) is int and x == 67 for x in a):
+        print("🤲 SIX SEVEN! 6️⃣7️⃣")
+
+
+def lapitos(*a):
+    """lapitos("Olá mundo") imprime em inglês: Hello world."""
+    print(*[ingles(str(x)) for x in a])
+
+
+def sixseven():
+    print("🤲 SIX SEVEN! 6️⃣7️⃣")
+    return 67
+
+
+def skibidi(coisas):
+    """Escolhe uma coisa aleatória da lista (caos total, igual ao Skibidi)."""
+    return random.choice(list(coisas))
+
+
+def fanum(lista):
+    """Fanum tax: rouba o último item da lista e devolve."""
+    item = lista.pop()
+    print(f"🍟 Fanum tax! Levou: {item!r}")
+    return item
+
+
+def verity(x):
+    """Verity sabe um milhão de coisas: mostra tudo sobre um valor."""
+    info = f"valor={x!r}, tipo={type(x).__name__}"
+    if hasattr(x, "__len__"):
+        info += f", tamanho={len(x)}"
+    print(f"🟡 Verity sabe: {info}")
+    return x
+
+
+def rizz(texto):
+    """Dá rizz para um texto."""
+    return f"✨{str(texto).title()}✨"
+
+
+def farmar_aura(n=67):
+    global AURA
+    AURA += n
+    print(f"✨ {'+' if n >= 0 else ''}{n} aura (total: {AURA})")
+    return AURA
+
+
+def aura():
+    return AURA
+
+
+def chimpanzini(pergunta=""):
+    """Chimpanzini Bananini pergunta (é o input do brainrot)."""
+    return input(pergunta)
 
 
 # ---------- funções emprestadas de outras linguagens ----------
@@ -203,6 +276,8 @@ class _Object:
 
 def criar_namespace():
     """Tudo que o código .larp pode usar sem importar (Math, parseInt, input, ...)."""
+    global AURA, LAPITOS
+    AURA, LAPITOS = 0, False                     # cada programa começa do zero
     Math = types.SimpleNamespace(
         floor=math.floor, ceil=math.ceil, sqrt=math.sqrt, pow=pow, max=max, min=min,
         abs=abs, round=round, random=random.random, trunc=math.trunc, log=math.log,
@@ -211,6 +286,8 @@ def criar_namespace():
         "_S": _S, "_O": _O, "_bf": bf, "_ballerina": ballerina, "_tralala": tralala,
         "_bombardiro": bombardiro, "_entrar": entrar, "_printf": printf, "_sprintf": sprintf,
         "_println": println, "_rustfmt": rustfmt,
+        "print": imprimir, "lapitos": lapitos, "sixseven": sixseven, "skibidi": skibidi, "fanum": fanum,
+        "verity": verity, "rizz": rizz, "farmar_aura": farmar_aura, "aura": aura, "chimpanzini": chimpanzini,
         "Math": Math, "parseInt": lambda x, base=10: int(x, base), "parseFloat": float,
         "String": str, "Number": num, "Boolean": bool,
         "Integer": types.SimpleNamespace(parseInt=int, valueOf=int, MAX_VALUE=2**31 - 1,

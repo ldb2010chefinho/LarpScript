@@ -32,6 +32,7 @@ def montar():
             "larp.py": ler("larp.py"),
             "larp_tradutor.py": ler("larp_tradutor.py"),
             "larp_runtime.py": ler("larp_runtime.py"),
+            "larp_lapitos.py": ler("larp_lapitos.py"),
             "ponte.py": ler(os.path.join("studio", "ponte.py")),
         },
         "exemplos": {n: ler(os.path.join("exemplos", n)) for n in exemplos},

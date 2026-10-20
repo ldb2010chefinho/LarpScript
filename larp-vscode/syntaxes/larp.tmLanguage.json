@@ -2,59 +2,132 @@
   "name": "LARP Script",
   "scopeName": "source.larp",
   "patterns": [
-    { "include": "#css-block" },
-    { "include": "#html-line" },
-    { "include": "#brainfuck" },
-    { "include": "#comments" },
-    { "include": "#strings" },
-    { "include": "#larp-as" },
-    { "include": "#keywords-control" },
-    { "include": "#keywords-decl" },
-    { "include": "#types" },
-    { "include": "#constants" },
-    { "include": "#print-aliases" },
-    { "include": "#numbers" },
-    { "include": "#function-calls" },
-    { "include": "#operators" }
+    {
+      "include": "#css-block"
+    },
+    {
+      "include": "#html-line"
+    },
+    {
+      "include": "#brainfuck"
+    },
+    {
+      "include": "#comments"
+    },
+    {
+      "include": "#strings"
+    },
+    {
+      "include": "#brainrot"
+    },
+    {
+      "include": "#larp-as"
+    },
+    {
+      "include": "#keywords-control"
+    },
+    {
+      "include": "#keywords-decl"
+    },
+    {
+      "include": "#types"
+    },
+    {
+      "include": "#constants"
+    },
+    {
+      "include": "#print-aliases"
+    },
+    {
+      "include": "#numbers"
+    },
+    {
+      "include": "#function-calls"
+    },
+    {
+      "include": "#operators"
+    }
   ],
   "repository": {
     "css-block": {
       "begin": "(?i)(<)(style)([^>]*)(>)",
       "end": "(?i)(</)(style)(>)",
       "beginCaptures": {
-        "1": { "name": "punctuation.definition.tag.html" },
-        "2": { "name": "entity.name.tag.html" },
-        "4": { "name": "punctuation.definition.tag.html" }
+        "1": {
+          "name": "punctuation.definition.tag.html"
+        },
+        "2": {
+          "name": "entity.name.tag.html"
+        },
+        "4": {
+          "name": "punctuation.definition.tag.html"
+        }
       },
       "endCaptures": {
-        "1": { "name": "punctuation.definition.tag.html" },
-        "2": { "name": "entity.name.tag.html" },
-        "3": { "name": "punctuation.definition.tag.html" }
+        "1": {
+          "name": "punctuation.definition.tag.html"
+        },
+        "2": {
+          "name": "entity.name.tag.html"
+        },
+        "3": {
+          "name": "punctuation.definition.tag.html"
+        }
       },
       "contentName": "meta.embedded.css.larp",
-      "patterns": [{ "include": "source.css" }]
+      "patterns": [
+        {
+          "include": "source.css"
+        }
+      ]
     },
     "html-line": {
       "begin": "^\\s*(?=</?[a-zA-Z!])",
       "end": "$",
       "contentName": "meta.embedded.html.larp",
-      "patterns": [{ "include": "text.html.basic" }]
+      "patterns": [
+        {
+          "include": "text.html.basic"
+        }
+      ]
     },
     "brainfuck": {
       "begin": "^\\s*(?=[+\\-<>\\[\\].,]{2,}\\s*$)",
       "end": "$",
       "patterns": [
-        { "match": "[+\\-]", "name": "keyword.operator.arithmetic.brainfuck.larp" },
-        { "match": "[<>]", "name": "keyword.control.pointer.brainfuck.larp" },
-        { "match": "[\\[\\]]", "name": "punctuation.definition.loop.brainfuck.larp" },
-        { "match": "[.,]", "name": "support.function.io.brainfuck.larp" }
+        {
+          "match": "[+\\-]",
+          "name": "keyword.operator.arithmetic.brainfuck.larp"
+        },
+        {
+          "match": "[<>]",
+          "name": "keyword.control.pointer.brainfuck.larp"
+        },
+        {
+          "match": "[\\[\\]]",
+          "name": "punctuation.definition.loop.brainfuck.larp"
+        },
+        {
+          "match": "[.,]",
+          "name": "support.function.io.brainfuck.larp"
+        }
       ]
     },
     "comments": {
       "patterns": [
-        { "match": "//.*$", "name": "comment.line.double-slash.larp" },
-        { "match": "#.*$", "name": "comment.line.number-sign.larp" },
-        { "begin": "/\\*", "end": "\\*/", "name": "comment.block.larp" }
+        {
+          "match": "//.*$",
+          "name": "comment.line.double-slash.larp"
+        },
+        {
+          "match": "#.*$",
+          "name": "comment.line.number-sign.larp"
+        },
+        {
+          "begin": "/\\*",
+          "end": "\\*/",
+          "name": "comment.block.larp"
+        }
       ]
     },
     "strings": {
@@ -63,25 +136,42 @@
           "name": "string.quoted.double.larp",
           "begin": "\"",
           "end": "\"",
-          "patterns": [{ "match": "\\\\.", "name": "constant.character.escape.larp" }]
+          "patterns": [
+            {
+              "match": "\\\\.",
+              "name": "constant.character.escape.larp"
+            }
+          ]
         },
         {
           "name": "string.quoted.single.larp",
           "begin": "'",
           "end": "'",
-          "patterns": [{ "match": "\\\\.", "name": "constant.character.escape.larp" }]
+          "patterns": [
+            {
+              "match": "\\\\.",
+              "name": "constant.character.escape.larp"
+            }
+          ]
         },
         {
           "name": "string.template.larp",
           "begin": "`",
           "end": "`",
           "patterns": [
-            { "match": "\\\\.", "name": "constant.character.escape.larp" },
+            {
+              "match": "\\\\.",
+              "name": "constant.character.escape.larp"
+            },
             {
               "begin": "\\$\\{",
               "end": "\\}",
               "name": "meta.template.expression.larp",
-              "patterns": [{ "include": "$self" }]
+              "patterns": [
+                {
+                  "include": "$self"
+                }
+              ]
             }
           ]
         }
@@ -90,8 +180,12 @@
     "larp-as": {
       "match": "\\b(larp)\\s+(as)\\b",
       "captures": {
-        "1": { "name": "keyword.other.larp.larp" },
-        "2": { "name": "keyword.other.larp.larp" }
+        "1": {
+          "name": "keyword.other.larp.larp"
+        },
+        "2": {
+          "name": "keyword.other.larp.larp"
+        }
       }
     },
     "keywords-control": {
@@ -125,6 +219,10 @@
     "operators": {
       "match": "=>|->|:=|\\+\\+|--|[=!<>]=?|&&|\\|\\||[+\\-*/%]",
       "name": "keyword.operator.larp"
+    },
+    "brainrot": {
+      "match": "\\b(tung|sahur|ballerina|cappuccina|patapim|brr|tralalero|tralala|vezes|bombardiro|crocodilo|bombombini|lirili|larila|mewing|corta|segue|sigma|npc|ohio|lapitos|sixseven|skibidi|fanum|verity|rizz|farmar_aura|chimpanzini)\\b",
+      "name": "keyword.other.larp.larp"
     }
   }
 }

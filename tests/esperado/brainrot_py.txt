@@ -1,0 +1,42 @@
+print(_S("Começou o show!"))
+nome = _S("Tralalero")
+MAXIMO = 3
+def dobro(x):
+    return x * 2
+if dobro(2) > 3:
+    print(_S("o dobro de 2 é grande"))
+elif dobro(2) == 3:
+    print(_S("impossível"))
+else:
+    print(_S("o dobro de 2 é pequeno"))
+for i in range(1, (MAXIMO) + 1):
+    print(_S("volta ") + i)
+n = 0
+while True:
+    n += 1
+    if n == 2:
+        continue
+    if n > 3:
+        break
+    print(_S("n = ") + n)
+try:
+    raise Exception(_S("deu ruim lá em cima"))
+except Exception as e:
+    print(_S("o Crocodilo pegou: ") + str(e))
+def nada():
+    pass
+print(60 + 7)
+lanche = [_S("pizza"), _S("batata"), _S("sorvete")]
+fanum(lanche)
+verity(lanche)
+print(rizz(_S("tralalero sigma")))
+farmar_aura(1000)
+print(skibidi([_S("só tem um")]))
+if None == None:
+    print(_S("only in ohio"))
+lapitos(_S("Bom dia, meu nome é Tralalero e eu gosto de pizza"))
+_entrar('lapitos')
+print(_S("Olá mundo! Eu sou o Lapitos e hoje o programa funcionou"))
+print(_S("Você tem 67 anos?"))
+_entrar('python')
+print(_S("de volta ao português"))

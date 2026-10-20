@@ -36,6 +36,27 @@ CABECAS = [
     (r"^loop$", "while True"), (r"^begin$", "try"), (r"^ensure$", "finally"),
 ]
 
+# Dialeto brainrot: os personagens viram palavras da própria linguagem (o diferencial da LARP).
+# Funciona sempre, com ou sem --brainrot (o --brainrot só liga os comentários dos personagens).
+DIALETO = [
+    (r"^tung\s+tung\s+tung\s+sahur\b", "print"),           # o tambor grita: imprimir
+    (r"^sahur\b", "print"),
+    (r"^ballerina\s+(?=\w+\s*\()", "function "),          # Ballerina dança uma coreografia: função
+    (r"^cappuccina\b", "return"),                          # ... e entrega o Cappuccina: return
+    (r"^brr\s+brr\s+patapim\b", "else if"),                # Patapim decide: if / else if / else
+    (r"^patapim\b", "if"),
+    (r"^brr\s+brr$", "else"),
+    (r"^tralala\s+(.+?)\s+vezes$", r"for _ in range(\1)"),                     # tralala 3 vezes
+    (r"^tralala\s+(\w+)\s+de\s+(.+?)\s+at[eé]\s+(.+)$", r"for \1 in range(\2, (\3) + 1)"),
+    (r"^tralalero\b", "while"),                            # Tralalero corre em círculos: while
+    (r"^bombardiro$", "try"),                              # Bombardiro tenta / Crocodilo pega o erro
+    (r"^crocodilo\b", "catch"),
+    (r"^bombombini\s+(.+)$", r"raise Exception(\1)"),      # Bombombini joga o erro lá de cima
+    (r"^lirili\s+", "let "), (r"^larila\s+", "const "),    # Lirilì Larilà guarda valores
+    (r"^mewing$", "pass"),                                 # mewing: boca fechada, não faz nada
+    (r"^corta$", "break"), (r"^segue$", "continue"),       # corta a cena / segue o baile
+]
+
 # Trocas feitas na linha com as strings "escondidas" (ver mascarar)
 TROCAS = [
     (r"\bConsole\.ReadLine\(\)", "input()"),
@@ -52,6 +73,7 @@ TROCAS = [
     (r"&&", " and "), (r"\|\|", " or "), (r"!(?!=)", " not "),
     (r"\b(?:true|verdadeiro)\b", "True"), (r"\b(?:false|falso)\b", "False"),
     (r"\b(?:null|nil|undefined|nulo)\b", "None"),
+    (r"\bsigma\b", "True"), (r"\bnpc\b", "False"), (r"\bohio\b", "None"),   # memes também são valores
     (r"\bthis\b", "self"), (r"\bretorne\b", "return"), (r"\bthrow\b", "raise"),
     (r"\bError\b", "Exception"),
     (r"(?<=[\s(,=+\-*/{])@(?=[A-Za-z_])", "self."),
@@ -83,6 +105,9 @@ CLASSE = re.compile(MODS + r"(?:data\s+)?class\s+(\w+)\s*(?:extends\s+(\w+)|<\s*
 
 # Como o interpretador adivinha o "personagem" de cada linha (para --verbose e --hardcore)
 PERSONAGENS = [
+    ("Brainrot", r"^(?:sahur|tung\s+tung|ballerina|cappuccina|patapim|brr\s+brr|tralalero|tralala|bombardiro|"
+                 r"crocodilo|bombombini|lirili|larila|mewing|corta|segue)\b|"
+                 r"\b(?:chimpanzini|skibidi|fanum|verity|rizz|sixseven|farmar_aura|lapitos)\s*\("),
     ("Português", r"\b(funcao|escreva|enquanto|senao|retorne|verdadeiro|falso|nulo)\b|^se\b"),
     ("C++", r"\bcout\b|\bcin\b|std::"),
     ("C#", r"\bConsole\.(?:Write|ReadLine)"),
@@ -104,12 +129,12 @@ PERSONAGEM_DE = {
     "kotlin": "Kotlin", "kt": "Kotlin", "swift": "Kotlin", "rust": "Rust", "rs": "Rust",
     "go": "Go", "golang": "Go", "ruby": "Ruby", "rb": "Ruby", "php": "PHP",
     "c++": "C++", "cpp": "C++", "c": "C++", "c#": "C#", "csharp": "C#", "cs": "C#", "lua": "Lua",
-    "haskell": "Haskell", "hs": "Haskell", "elixir": "Elixir", "ex": "Elixir",
+    "haskell": "Haskell", "hs": "Haskell", "elixir": "Elixir", "ex": "Elixir", "brainrot": "Brainrot",
     "portugues": "Português", "português": "Português", "pt": "Português",
 }
 BRAINROT_NOMES = {"tungtung", "tralalero", "bombardiro", "ballerina", "brrbrr", "patapim", "sahur",
                   "lirili", "bombombini", "trippi", "assassino", "chimpanzini", "vaca", "boneca",
-                  "verity", "sixseven", "67"}
+                  "verity", "sixseven", "67", "lapitos"}
 
 STR = re.compile(r'("(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'|`[^`]*`)')
 
@@ -280,6 +305,8 @@ def traduzir(rest, abre, fundo=False):
         r = r[:-1].rstrip()
     nativo = bool(re.match(r"^(case|match)\b", r))     # match/case do próprio Python
     mas, g = mascarar(r)
+    for padrao, novo in DIALETO:
+        mas = re.sub(padrao, novo, mas)
     r = desmascarar(tirar_generics(mas), g)
     # Java / C++: int[] nums = {1, 2, 3};   int nums[] = {1, 2};   ->  nums = [1, 2, 3]
     r = re.sub(rf"^(?:{DECL}|[A-Z]\w*)\s*\[\]\s+(\w+)\s*=\s*\{{(.*)\}}$", r"\1 = [\2]", r)

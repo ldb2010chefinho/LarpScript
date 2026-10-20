@@ -1,0 +1,63 @@
+// O dialeto brainrot: os personagens SÃO a linguagem
+tung tung tung sahur "Começou o show!"
+
+lirili nome = "Tralalero"
+larila MAXIMO = 3
+
+ballerina dobro(x) {
+    cappuccina x * 2
+}
+
+patapim (dobro(2) > 3) {
+    sahur("o dobro de 2 é grande")
+} brr brr patapim (dobro(2) == 3) {
+    sahur("impossível")
+} brr brr {
+    sahur("o dobro de 2 é pequeno")
+}
+
+tralala i de 1 até MAXIMO {
+    sahur("volta " + i)
+}
+
+lirili n = 0
+tralalero (sigma) {
+    n++
+    patapim (n == 2) {
+        segue
+    }
+    patapim (n > 3) {
+        corta
+    }
+    sahur("n = " + n)
+}
+
+bombardiro {
+    bombombini "deu ruim lá em cima"
+} crocodilo (e) {
+    sahur("o Crocodilo pegou: " + str(e))
+}
+
+ballerina nada() {
+    mewing
+}
+
+// memes de verdade
+sahur(60 + 7)
+lirili lanche = ["pizza", "batata", "sorvete"]
+fanum(lanche)
+verity(lanche)
+sahur(rizz("tralalero sigma"))
+farmar_aura(1000)
+sahur(skibidi(["só tem um"]))
+patapim (ohio == None) {
+    sahur("only in ohio")
+}
+
+// o Lapitos (o amigo que trocou as tabelas do Volta para inglês)
+lapitos("Bom dia, meu nome é Tralalero e eu gosto de pizza")
+larp as lapitos
+sahur("Olá mundo! Eu sou o Lapitos e hoje o programa funcionou")
+console.log("Você tem 67 anos?")
+larp as python
+print("de volta ao português")
