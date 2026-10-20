@@ -70,6 +70,19 @@ continuam são juntadas por `juntar()`), generics, strings coladas, BOM, `--temp
    erro clicável com marcador vermelho, personagem da linha (ponte.personagem), aura no brainrot,
    boas-vindas, campo de nome no lugar de prompt(). Próximas ideias: input() interativo, publicar no Pages.
 
+6. [feito] Identidade visual "Coxia" (pedido: tirar a cara de IA). Ver seção abaixo.
+
+## Identidade visual do LarpStudios (siga sempre; não volte ao visual genérico)
+- Tema: bastidores de teatro. NADA de gradiente roxo/azul, Inter, cards genéricos ou emoji na interface
+  (emoji só no conteúdo: personagens brainrot e mensagens). Ícones: SVG de traço no sprite `#i-*`.
+- Cores (escuro "Coxia"): fundo #15120f (nunca preto puro), superfícies #1c1814/#2c251e, borda #2e2822,
+  texto #ece3d6, apagado #a39684, destaque ÚNICO âmbar "luz de palco" #f2b544 (texto em cima: #1a1208),
+  cortina vinho #8c2433 na barra de status, verde #9fd08a, vermelho #f28b7a. Regra 60-30-10.
+- Claro "Matinê": fundo #fffaf2, texto #2a211b, destaque #9a5800. Alto contraste: preto/branco/amarelo.
+- Fontes: Atkinson Hyperlegible Next (interface), Atkinson Hyperlegible Mono (código), Fraunces (marca/títulos).
+- Contraste mínimo 4,5:1 (WCAG AA) em todo texto. Brainrot = barra de status em fita listrada âmbar.
+- Voz: teatro ("Cena concluída", "Corta! Erro na linha N", ingresso de boas-vindas).
+
 ## Regras
 - O dono é estudante, iniciante em Python (depois vai aprender React). Explique o conceito antes
   do código e em partes pequenas.

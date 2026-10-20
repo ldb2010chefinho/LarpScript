@@ -1,3 +1,5 @@
+<img src="logo.svg" width="96" alt="Logo: quadrado LS disfarçado de óculos e bigode">
+
 # LARP Script 🎭
 
 A linguagem que **finge ser todas as outras**. LARP = *live action role-playing*:

@@ -10,50 +10,68 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>LarpStudios</title>
 <meta name="description" content="LarpStudios: escreva e rode LARP Script no navegador. Feito por ldb e rezenha.">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎭</text></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='3' fill='%23f2b544'/><g fill='none' stroke='%231a1208' stroke-width='1.7'><circle cx='8.5' cy='8.5' r='3.2'/><circle cx='16.5' cy='8.5' r='3.2'/><path d='M11.7 8.2h1.6'/></g><path d='M12.5 10.2c-.4 2.2-1.2 3.3-2 3.8h4c-.8-.5-1.6-1.6-2-3.8z' fill='%231a1208'/><path d='M6.8 16.2c2-1.8 4-1.6 5.7-.4 1.7-1.2 3.7-1.4 5.7.4-1.9 1.3-3.9 1.4-5.7.3-1.8 1.1-3.8 1-5.7-.3z' fill='%231a1208'/><text x='29.2' y='29' text-anchor='end' font-family='Arial Black, Arial, Helvetica, sans-serif' font-weight='900' font-size='13.5' fill='%231a1208'>LS</text></svg>">
+<meta name="theme-color" content="#110e0b">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Mono:wght@400;600&family=Atkinson+Hyperlegible+Next:wght@400;600;700&family=Fraunces:opsz,wght@9..144,700&display=swap">
 <style>
+  /* Paleta "Coxia": os bastidores de um teatro. Fundo de madeira escura (nunca preto puro),
+     texto cor de papel, luz de palco âmbar como ÚNICO destaque, cortina vinho na barra de status.
+     Regra 60-30-10: 60% fundo, 30% superfícies, 10% âmbar. */
   :root {
-    --fundo: #1e1e1e; --lateral: #252526; --atividade: #333333; --topo: #181818;
-    --aba: #2d2d2d; --borda: #3c3c3c; --texto: #cccccc; --apagado: #a8a8a8;
-    --forte: #ffffff; --hover: #ffffff1a; --selecionado: #37373d; --campo: #2a2a2a;
-    --destaque: #ffd700; --roxo: #7c3aed; --verde: #4ec9b0; --vermelho: #f48771;
+    --fundo: #15120f; --lateral: #1c1814; --atividade: #110e0b; --topo: #110e0b;
+    --aba: #1c1814; --borda: #2e2822; --texto: #ece3d6; --apagado: #a39684;
+    --forte: #fff8ee; --hover: #ffffff12; --selecionado: #2c251e; --campo: #1c1814;
+    --destaque: #f2b544; --sobre-destaque: #1a1208; --cortina: #8c2433; --verde: #9fd08a; --vermelho: #f28b7a;
     --painel: 38%;
-    --ui: "Segoe UI", system-ui, -apple-system, sans-serif;
-    --mono: "Cascadia Code", Consolas, "Courier New", monospace;
+    --ui: "Atkinson Hyperlegible Next", "Segoe UI", system-ui, sans-serif;
+    --mono: "Atkinson Hyperlegible Mono", "Cascadia Code", Consolas, monospace;
+    --marca: "Fraunces", Georgia, serif;
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; height: 100%; background: var(--fundo); color: var(--texto);
                font: 13px var(--ui); overflow: hidden; }
   button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
   button:disabled { opacity: .4; cursor: default; }
+  input[type="checkbox"], input[type="radio"] { accent-color: var(--destaque); }
+  .ic { width: 18px; height: 18px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8;
+        stroke-linecap: round; stroke-linejoin: round; vertical-align: -4px; }
+  .ic.cheio { fill: currentColor; stroke: none; }
+  .ic-ls { width: 15px; height: 15px; flex: none; border-radius: 2px; }
   [hidden] { display: none !important; }
   :focus-visible { outline: 2px solid var(--destaque); outline-offset: -2px; }
   .pular { position: absolute; left: 8px; top: -80px; z-index: 20; padding: 8px 14px; background: var(--destaque);
-           color: #000; border-radius: 4px; font-weight: 600; }
+           color: var(--sobre-destaque); border-radius: 4px; font-weight: 600; }
   .pular:focus { top: 6px; }
 
   /* ---------- temas: claro e alto contraste (acessibilidade) ---------- */
-  :root[data-tema="claro"] { --fundo: #ffffff; --lateral: #f3f3f3; --atividade: #2c2c2c; --topo: #e5e5e5;
-    --aba: #ececec; --borda: #c8c8c8; --texto: #1f1f1f; --apagado: #555555; --destaque: #8a5a00;
-    --verde: #0b6b4b; --vermelho: #b42318; --forte: #000000; --hover: #0000000f; --selecionado: #d6e4f5;
-    --campo: #f7f7f7; }
+  /* "Matinê": a sessão da tarde, papel creme e tinta marrom */
+  :root[data-tema="claro"] { --fundo: #fffaf2; --lateral: #f5eee3; --atividade: #2a201a; --topo: #efe6d8;
+    --aba: #efe6d8; --borda: #d9ccb8; --texto: #2a211b; --apagado: #6b5c4c; --destaque: #9a5800;
+    --sobre-destaque: #ffffff; --verde: #2f6b2a; --vermelho: #a8281c; --forte: #000000; --hover: #0000000d;
+    --selecionado: #f0dfc3; --campo: #fffdf8; }
   :root[data-tema="contraste"] { --fundo: #000; --lateral: #000; --atividade: #000; --topo: #000; --aba: #000;
-    --borda: #ffffff; --texto: #ffffff; --apagado: #e6e6e6; --destaque: #ffff00; --roxo: #000; --verde: #8dff8d;
+    --borda: #ffffff; --texto: #ffffff; --apagado: #e6e6e6; --destaque: #ffff00; --cortina: #000; --sobre-destaque: #000; --verde: #8dff8d;
     --vermelho: #ff9a9a; --forte: #ffffff; --hover: #ffffff26; --selecionado: #333333; --campo: #000; }
   :root[data-tema="contraste"] #status { border-top: 1px solid #fff; }
   :root[data-tema="contraste"] .aba.ativo, :root[data-tema="contraste"] #lateral li.ativo { outline: 1px dashed #ffff00; }
 
   /* ---------- boas-vindas, erro clicável, aura ---------- */
-  .boas-vindas { position: absolute; right: 18px; top: 46px; z-index: 6; max-width: 340px; background: var(--lateral);
-                 color: var(--texto); border: 1px solid var(--destaque); border-radius: 8px; padding: 14px 16px;
-                 box-shadow: 0 10px 30px #0009; line-height: 1.5; }
-  .boas-vindas h2 { margin: 0 0 4px; font-size: 15px; color: var(--destaque); }
+  .boas-vindas { position: absolute; right: 18px; top: 46px; z-index: 6; max-width: 350px; background: var(--lateral);
+                 color: var(--texto); border: 1px solid var(--borda); border-left: 2px dashed var(--destaque);
+                 border-radius: 10px; padding: 16px 18px 16px 22px; box-shadow: 0 18px 40px #0008; line-height: 1.55; }
+  .boas-vindas .ingresso { font-size: 11px; letter-spacing: 2px; color: var(--destaque); font-weight: 700; }
+  .boas-vindas h2 { margin: 2px 0 6px; font: 700 22px/1.15 var(--marca); color: var(--forte); }
   .boas-vindas ol { margin: 6px 0 12px; padding-left: 20px; }
   .boas-vindas kbd, .config kbd { font-family: var(--mono); background: var(--hover); padding: 0 4px; border-radius: 3px; }
-  .botao-forte { background: var(--destaque); color: #000; padding: 6px 14px; border-radius: 4px; font-weight: 600; }
-  :root[data-tema="claro"] .botao-forte { color: #fff; }
+  .botao-forte { background: var(--destaque); color: var(--sobre-destaque); padding: 7px 16px; border-radius: 6px; font-weight: 700; }
   #saida .ir-linha { color: var(--destaque); text-decoration: underline; padding: 0; font: inherit; }
-  body.brainrot #status { background: linear-gradient(90deg, #6d28d9, #be185d, #b45309); }
+  /* brainrot: a barra vira fita de "cuidado" (meme sem cara de app genérico) */
+  body.brainrot #status { background: repeating-linear-gradient(135deg, #f2b544 0 14px, #e0a12c 14px 28px);
+                          color: #1a1208; font-weight: 700; }
+  @keyframes luz { from { box-shadow: inset 0 2px 0 var(--destaque), inset 0 60px 60px -50px #f2b54430; } to { box-shadow: none; } }
+  .luz { animation: luz .9s ease-out; }
   .config { padding: 0 14px 14px; line-height: 1.5; }
   .config fieldset { border: 1px solid var(--borda); border-radius: 6px; margin: 0 0 12px; padding: 8px 10px; }
   .config legend { padding: 0 4px; font-weight: 600; color: var(--destaque); }
@@ -72,14 +90,18 @@
   /* ---------- barra de cima ---------- */
   #topo { grid-area: topo; display: flex; align-items: center; gap: 6px; padding: 0 10px;
           background: var(--topo); border-bottom: 1px solid var(--borda); }
-  .marca { font-size: 15px; margin-right: 10px; white-space: nowrap; }
+  .marca { display: flex; align-items: center; gap: 8px; margin-right: 12px; white-space: nowrap;
+           font: 700 17px var(--marca); letter-spacing: .2px; color: var(--forte); }
+  .marca .logo { width: 26px; height: 26px; border-radius: 3px; }
   .marca b { color: var(--destaque); }
-  #topo button { padding: 5px 10px; border-radius: 4px; white-space: nowrap; }
+  #topo button { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 6px; white-space: nowrap; }
   #topo button:hover:not(:disabled) { background: var(--hover); }
-  #bt-rodar { background: #16825d; color: #fff; font-weight: 600; }
-  #bt-rodar:hover:not(:disabled) { background: #1a9d70 !important; }
-  .chave { display: flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 4px;
-           cursor: pointer; user-select: none; white-space: nowrap; }
+  #bt-rodar { background: var(--destaque); color: var(--sobre-destaque); font-weight: 700; padding: 6px 14px !important; }
+  #bt-rodar:hover:not(:disabled) { background: var(--destaque) !important; filter: brightness(1.1); }
+  #bt-parar:not(:disabled) { color: var(--vermelho); }
+  .chave { display: flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px;
+           border: 1px solid var(--borda); cursor: pointer; user-select: none; white-space: nowrap; font-size: 12px; }
+  .chave:has(input:checked) { border-color: var(--destaque); color: var(--forte); }
   .chave:hover { background: var(--hover); }
   .espaco { flex: 1; }
   .credito { color: var(--apagado); font-size: 12px; white-space: nowrap; }
@@ -87,10 +109,12 @@
 
   /* ---------- barra de atividades e lateral ---------- */
   #atividade { grid-area: ativ; background: var(--atividade); display: flex; flex-direction: column; }
-  #atividade button { height: 48px; font-size: 22px; opacity: .55; border-left: 2px solid transparent; }
-  #atividade button.ativo { opacity: 1; border-left-color: var(--destaque); }
+  #atividade button { height: 48px; color: var(--apagado); border-left: 2px solid transparent; display: grid; place-items: center; }
+  #atividade button .ic { width: 22px; height: 22px; }
+  #atividade button:hover { color: var(--texto); }
+  #atividade button.ativo { color: var(--forte); border-left-color: var(--destaque); }
   #lateral { grid-area: lat; background: var(--lateral); overflow: auto; border-right: 1px solid var(--borda); }
-  .titulo-lateral { padding: 10px 14px; font-size: 11px; letter-spacing: .5px; color: var(--apagado); }
+  .titulo-lateral { padding: 12px 14px 8px; font-size: 11px; letter-spacing: 1.5px; color: var(--apagado); }
   .grupo { display: flex; align-items: center; justify-content: space-between; padding: 4px 8px 4px 14px;
            font-size: 11px; font-weight: 700; letter-spacing: .3px; }
   .grupo button { font-size: 15px; padding: 0 6px; border-radius: 3px; }
@@ -105,7 +129,7 @@
   #lateral li .abrir { flex: 1; display: flex; align-items: center; gap: 6px; min-width: 0; padding: 3px 0; text-align: left; }
   .editado { color: var(--destaque); font-size: 10px; }
   .ajuda { padding: 0 14px 14px; line-height: 1.55; }
-  .ajuda h3 { font-size: 12px; margin: 14px 0 4px; color: var(--destaque); }
+  .ajuda h3 { font: 700 15px var(--marca); margin: 16px 0 4px; color: var(--destaque); }
   .ajuda code, .ajuda kbd { font-family: var(--mono); background: var(--hover); padding: 0 4px; border-radius: 3px; }
   .ajuda p { margin: 4px 0; }
   .ling { display: block; width: 100%; text-align: left; margin: 4px 0; padding: 5px 8px;
@@ -124,7 +148,8 @@
   .aba { display: flex; align-items: center; gap: 6px; padding: 0 10px 0 14px; background: var(--aba);
          border-right: 1px solid var(--fundo); color: var(--apagado); cursor: pointer; white-space: nowrap;
          border-top: 1px solid transparent; }
-  .aba.ativo { background: var(--fundo); color: var(--forte); border-top-color: var(--destaque); }
+  .aba.ativo { background: var(--fundo); color: var(--forte); border-top: 2px solid var(--destaque); }
+  .aba .ic, #lateral li .ic { width: 15px; height: 15px; color: var(--destaque); }
   .aba .x { padding: 3px 7px; border-radius: 3px; }
   .aba .x:hover { background: var(--hover); }
   #bt-restaurar { margin-left: auto; padding: 0 12px; color: var(--apagado); white-space: nowrap; }
@@ -134,7 +159,7 @@
          border: 0; outline: 0; background: var(--fundo); color: var(--texto); font: var(--tam, 14px)/1.5 var(--mono);
          tab-size: 4; white-space: pre; overflow: auto; }
   #divisor { height: 5px; flex: none; cursor: row-resize; background: var(--borda); }
-  #divisor:hover, #divisor.arrastando { background: var(--roxo); }
+  #divisor:hover, #divisor.arrastando { background: var(--destaque); }
   #painel { height: var(--painel); flex: none; display: flex; min-height: 80px; overflow: hidden; }
   #painel-saida-area { flex: 1; display: flex; flex-direction: column; min-width: 0; min-height: 0; }
   .abas-painel { display: flex; align-items: center; gap: 2px; padding: 0 8px; height: 34px; flex: none; }
@@ -157,11 +182,11 @@
   #entrada { flex: 1; resize: none; border: 0; outline: 0; margin: 0 8px 8px; padding: 6px 8px;
              background: var(--campo); color: var(--verde); font: var(--tam-saida, 13px)/1.45 var(--mono); border-radius: 3px;
              border: 1px solid var(--borda); }
-  #entrada:focus { box-shadow: 0 0 0 1px var(--roxo); }
+  #entrada:focus { box-shadow: 0 0 0 1px var(--destaque); }
 
   /* ---------- barra de status ---------- */
   #status { grid-area: status; display: flex; align-items: center; gap: 16px; padding: 0 10px;
-            background: var(--roxo); color: #fff; font-size: 12px; white-space: nowrap; overflow: hidden; }
+            background: var(--cortina); color: #fff8ee; font-size: 12px; white-space: nowrap; overflow: hidden; }
   #status > span { flex: none; }
   #status > .espaco { flex: 1; }
 
@@ -169,7 +194,10 @@
   @media (max-width: 760px) {
     #app { grid-template-columns: 44px 0 minmax(0, 1fr); }
     body.com-lateral #app { grid-template-columns: 44px 200px minmax(0, 1fr); }
-    .credito, .rotulo, #st-cursor, #st-tempo, .marca span { display: none; }
+    .credito, #bt-parar .rotulo, #st-cursor, #st-tempo, .marca span { display: none; }
+    .chave { padding: 3px 7px; font-size: 11px; }
+    .boas-vindas { left: 10px; right: 10px; max-width: none; top: 42px; }
+    .boas-vindas h2 { font-size: 19px; }
     #topo { gap: 2px; padding: 0 6px; }
     #painel { flex-direction: column; }
     #painel-entrada { width: auto; height: 90px; border-left: 0; border-top: 1px solid var(--borda); }
@@ -178,30 +206,45 @@
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4.5v15l12-7.5z"/></symbol>
+  <symbol id="i-stop" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></symbol>
+  <symbol id="i-pasta" viewBox="0 0 24 24"><path d="M3 6.5h6l2 2h10v10.5H3z"/></symbol>
+  <symbol id="i-ajustes" viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></symbol>
+  <symbol id="i-ajuda" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .9-1 1.7M12 17h.01"/></symbol>
+  <symbol id="i-abrir" viewBox="0 0 24 24"><path d="M12 15V4M7.5 8.5 12 4l4.5 4.5M4 15v5h16v-5"/></symbol>
+  <symbol id="i-baixar" viewBox="0 0 24 24"><path d="M12 4v11M7.5 10.5 12 15l4.5-4.5M4 15v5h16v-5"/></symbol>
+  <symbol id="i-limpar" viewBox="0 0 24 24"><path d="M5 20h14M8 16l9-9-3-3-9 9 3 3zM10.5 13.5l-3-3"/></symbol>
+  <symbol id="i-mais" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-lixo" viewBox="0 0 24 24"><path d="M4 7h16M9.5 7V4.5h5V7M6.5 7l1 13h9l1-13"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></symbol>
+  <symbol id="i-ls" viewBox="0 0 16 16"><rect width="16" height="16" rx="2" fill="#f2b544" stroke="none"/><text x="14.6" y="14.2" text-anchor="end" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="7.6" fill="#1a1208" stroke="none">LS</text></symbol>
+  <symbol id="i-arquivo" viewBox="0 0 24 24"><path d="M6 3h8.5L19 7.5V21H6zM14 3v5h5"/></symbol>
+</svg>
 <a class="pular" href="#editor" id="pular">Pular para o editor</a>
 <div id="app">
   <header id="topo">
-    <div class="marca">🎭 <span><b>Larp</b>Studios</span></div>
-    <button id="bt-rodar" title="Rodar (Ctrl+Enter)">▶ <span class="rotulo">Rodar</span></button>
-    <button id="bt-parar" title="Parar o programa (ex.: loop infinito)" disabled>■ <span class="rotulo">Parar</span></button>
-    <label class="chave" title="Personagens meme: Tung Tung Tung Sahur, Tralalero, Ballerina..."><input type="checkbox" id="op-brainrot"> 🪵 <span class="rotulo">Brainrot</span></label>
-    <label class="chave" title="Só aceita código bem no personagem (larp as python:)"><input type="checkbox" id="op-hardcore"> 💀 <span class="rotulo">Hardcore</span></label>
+    <div class="marca"><svg class="logo" viewBox="0 0 32 32" role="img" aria-label="LarpStudios: um quadrado LS disfarçado de óculos e bigode"><rect width="32" height="32" rx="3" fill="#f2b544"/><g fill="none" stroke="#1a1208" stroke-width="1.7"><circle cx="8.5" cy="8.5" r="3.2"/><circle cx="16.5" cy="8.5" r="3.2"/><path d="M11.7 8.2h1.6"/></g><path d="M12.5 10.2c-.4 2.2-1.2 3.3-2 3.8h4c-.8-.5-1.6-1.6-2-3.8z" fill="#1a1208"/><path d="M6.8 16.2c2-1.8 4-1.6 5.7-.4 1.7-1.2 3.7-1.4 5.7.4-1.9 1.3-3.9 1.4-5.7.3-1.8 1.1-3.8 1-5.7-.3z" fill="#1a1208"/><text x="29.2" y="29" text-anchor="end" font-family="Arial Black, Arial, Helvetica, sans-serif" font-weight="900" font-size="13.5" fill="#1a1208">LS</text></svg><span><b>Larp</b>Studios</span></div>
+    <button id="bt-rodar" title="Rodar (Ctrl+Enter)"><svg class="ic cheio"><use href="#i-play"/></svg><span class="rotulo">Rodar</span></button>
+    <button id="bt-parar" title="Parar o programa (ex.: loop infinito)" disabled><svg class="ic cheio"><use href="#i-stop"/></svg><span class="rotulo">Parar</span></button>
+    <label class="chave" title="Personagens meme: Tung Tung Tung Sahur, Tralalero, Ballerina..."><input type="checkbox" id="op-brainrot"> <span class="rotulo">Brainrot</span></label>
+    <label class="chave" title="Só aceita código bem no personagem (larp as python:)"><input type="checkbox" id="op-hardcore"> <span class="rotulo">Hardcore</span></label>
     <span class="espaco"></span>
-    <button id="bt-abrir" title="Abrir um .larp do computador" aria-label="Abrir um arquivo .larp do computador">📂</button>
-    <button id="bt-baixar" title="Baixar este arquivo" aria-label="Baixar este arquivo">⬇</button>
+    <button id="bt-abrir" title="Abrir um .larp do computador" aria-label="Abrir um arquivo .larp do computador"><svg class="ic"><use href="#i-abrir"/></svg></button>
+    <button id="bt-baixar" title="Baixar este arquivo" aria-label="Baixar este arquivo"><svg class="ic"><use href="#i-baixar"/></svg></button>
     <span class="credito">Feito por <b>ldb</b> e <b>rezenha</b></span>
   </header>
 
   <nav id="atividade" aria-label="Painéis laterais">
-    <button data-vista="arquivos" class="ativo" title="Explorador" aria-label="Explorador de arquivos">📁</button>
-    <button data-vista="config" title="Aparência e acessibilidade" aria-label="Aparência e acessibilidade">⚙️</button>
-    <button data-vista="ajuda" title="Ajuda" aria-label="Ajuda">❔</button>
+    <button data-vista="arquivos" class="ativo" title="Explorador" aria-label="Explorador de arquivos"><svg class="ic"><use href="#i-pasta"/></svg></button>
+    <button data-vista="config" title="Aparência e acessibilidade" aria-label="Aparência e acessibilidade"><svg class="ic"><use href="#i-ajustes"/></svg></button>
+    <button data-vista="ajuda" title="Ajuda" aria-label="Ajuda"><svg class="ic"><use href="#i-ajuda"/></svg></button>
   </nav>
 
   <aside id="lateral">
     <section data-vista="arquivos">
       <div class="titulo-lateral">EXPLORADOR</div>
-      <div class="grupo"><span>MEUS ARQUIVOS</span><button id="bt-novo" title="Novo arquivo" aria-label="Criar arquivo novo">＋</button></div>
+      <div class="grupo"><span>MEUS ARQUIVOS</span><button id="bt-novo" title="Novo arquivo" aria-label="Criar arquivo novo"><svg class="ic"><use href="#i-mais"/></svg></button></div>
       <ul id="lista-meus"></ul>
       <div class="grupo"><span>EXEMPLOS</span></div>
       <ul id="lista-exemplos"></ul>
@@ -263,15 +306,16 @@
   <main id="centro">
     <div id="abas" aria-label="Arquivos abertos"></div>
     <div class="boas-vindas" id="boas-vindas" role="dialog" aria-labelledby="bv-titulo" hidden>
-      <h2 id="bv-titulo">🎭 Bem-vindo ao LarpStudios!</h2>
+      <div class="ingresso">INGRESSO · ADMITE UM</div>
+      <h2 id="bv-titulo">Bem-vindo ao LarpStudios</h2>
       Aqui você escreve em qualquer linguagem (até misturando) e roda na hora.
       <ol>
-        <li>Escreva ou abra um exemplo no 📁 Explorador.</li>
+        <li>Escreva ou abra um exemplo no Explorador, à esquerda.</li>
         <li>Aperte <b>▶ Rodar</b> ou <kbd>Ctrl+Enter</kbd>.</li>
         <li>Veja o resultado embaixo: <b>SAÍDA</b>, <b>PÁGINA</b> (se tiver HTML) e <b>PYTHON</b>.</li>
       </ol>
-      Deu erro? Clique no <b>📍</b> e o editor mostra a linha. Tema e letra maior ficam em ⚙️.
-      <div style="margin-top:12px"><button class="botao-forte" id="bv-ok">Bora! 🚀</button></div>
+      Deu erro? Clique no <b>📍</b> e o editor mostra a linha. Tema e letra maior ficam nos ajustes, na barra da esquerda.
+      <div style="margin-top:12px"><button class="botao-forte" id="bv-ok">Entrar em cena</button></div>
     </div>
     <div id="editor"></div>
     <div id="divisor" title="Arraste para mudar o tamanho"></div>
@@ -282,7 +326,7 @@
           <button data-aba="pagina" role="tab" aria-selected="false" aria-controls="pagina" id="aba-pagina">PÁGINA</button>
           <button data-aba="python" role="tab" aria-selected="false" aria-controls="python" id="aba-python">PYTHON</button>
           <span class="espaco"></span>
-          <button id="bt-limpar" title="Limpar a saída" aria-label="Limpar a saída">🧹</button>
+          <button id="bt-limpar" title="Limpar a saída" aria-label="Limpar a saída"><svg class="ic"><use href="#i-limpar"/></svg></button>
         </div>
         <div class="conteudo-painel">
           <pre id="saida" data-aba="saida" role="log" aria-labelledby="aba-saida" tabindex="0"></pre>
@@ -544,32 +588,37 @@ function registrarLarp() {
   monaco.editor.defineTheme("larp-claro", {
     base: "vs", inherit: true,
     rules: [
-      { token: "keyword", foreground: "AF00DB" }, { token: "decl", foreground: "0000FF" },
-      { token: "type", foreground: "267F99" }, { token: "constant", foreground: "0000FF" },
-      { token: "print", foreground: "795E26", fontStyle: "bold" }, { token: "function", foreground: "795E26" },
-      { token: "identifier", foreground: "001080" }, { token: "string", foreground: "A31515" },
-      { token: "interp", foreground: "8A5A00" }, { token: "escape", foreground: "EE0000" },
-      { token: "number", foreground: "098658" }, { token: "comment", foreground: "008000", fontStyle: "italic" },
-      { token: "bf", foreground: "C2185B", fontStyle: "bold" }, { token: "tag", foreground: "800000" },
-      { token: "larp", foreground: "8A5A00", fontStyle: "bold" }, { token: "operator", foreground: "000000" },
-      { token: "cssprop", foreground: "E50000" }, { token: "cssval", foreground: "0451A5" },
+      { token: "keyword", foreground: "B0361F" }, { token: "decl", foreground: "8A4B00" },
+      { token: "type", foreground: "1F6F62" }, { token: "constant", foreground: "8A4B00", fontStyle: "italic" },
+      { token: "print", foreground: "7A3E00", fontStyle: "bold" }, { token: "function", foreground: "6B4A12" },
+      { token: "identifier", foreground: "2A211B" }, { token: "string", foreground: "3F6B22" },
+      { token: "interp", foreground: "9A5800" }, { token: "escape", foreground: "9A5800" },
+      { token: "number", foreground: "A3324A" }, { token: "comment", foreground: "7A6C5C", fontStyle: "italic" },
+      { token: "bf", foreground: "A3205A", fontStyle: "bold" }, { token: "tag", foreground: "A1401F" },
+      { token: "larp", foreground: "9A5800", fontStyle: "bold" }, { token: "operator", foreground: "4A3F35" },
+      { token: "cssprop", foreground: "1F6F62" }, { token: "cssval", foreground: "3F6B22" },
     ],
-    colors: {},
+    colors: { "editor.background": "#fffaf2", "editor.lineHighlightBackground": "#f7efe2",
+              "editorLineNumber.activeForeground": "#9a5800", "editorCursor.foreground": "#9a5800" },
   });
   monaco.editor.defineTheme("larp-escuro", {
     base: "vs-dark", inherit: true,
     rules: [
-      { token: "keyword", foreground: "C586C0" }, { token: "decl", foreground: "569CD6" },
-      { token: "type", foreground: "4EC9B0" }, { token: "constant", foreground: "569CD6" },
-      { token: "print", foreground: "DCDCAA", fontStyle: "bold" }, { token: "function", foreground: "DCDCAA" },
-      { token: "identifier", foreground: "9CDCFE" }, { token: "string", foreground: "CE9178" },
-      { token: "interp", foreground: "FFD700" }, { token: "escape", foreground: "D7BA7D" },
-      { token: "number", foreground: "B5CEA8" }, { token: "comment", foreground: "6A9955", fontStyle: "italic" },
-      { token: "bf", foreground: "FF79C6", fontStyle: "bold" }, { token: "tag", foreground: "569CD6" },
-      { token: "larp", foreground: "FFD700", fontStyle: "bold" }, { token: "operator", foreground: "D4D4D4" },
-      { token: "cssprop", foreground: "9CDCFE" }, { token: "cssval", foreground: "CE9178" },
+      { token: "keyword", foreground: "FF9E7A" }, { token: "decl", foreground: "F2C14E" },
+      { token: "type", foreground: "7FC8B8" }, { token: "constant", foreground: "F2C14E", fontStyle: "italic" },
+      { token: "print", foreground: "FFD27A", fontStyle: "bold" }, { token: "function", foreground: "F5DDA8" },
+      { token: "identifier", foreground: "E6DCCF" }, { token: "string", foreground: "A9CF8C" },
+      { token: "interp", foreground: "F2B544" }, { token: "escape", foreground: "E8C07A" },
+      { token: "number", foreground: "F0A7A0" }, { token: "comment", foreground: "958978", fontStyle: "italic" },
+      { token: "bf", foreground: "FF8FB1", fontStyle: "bold" }, { token: "tag", foreground: "E8896B" },
+      { token: "larp", foreground: "F2B544", fontStyle: "bold" }, { token: "operator", foreground: "CBBFAE" },
+      { token: "cssprop", foreground: "7FC8B8" }, { token: "cssval", foreground: "A9CF8C" },
     ],
-    colors: { "editor.background": "#1e1e1e" },
+    colors: { "editor.background": "#15120f", "editor.lineHighlightBackground": "#1f1a15",
+              "editorLineNumber.foreground": "#8c8070", "editorLineNumber.activeForeground": "#f2b544",
+              "editor.selectionBackground": "#f2b54433", "editorCursor.foreground": "#f2b544",
+              "editorIndentGuide.background1": "#2a241e", "editorWidget.background": "#1c1814",
+              "editorSuggestWidget.selectedBackground": "#2c251e" },
   });
 }
 
@@ -578,7 +627,7 @@ function iniciarMonaco() {
   registrarLarp();
   const comum = { theme: TEMAS_MONACO[estado.tema] || "larp-escuro", automaticLayout: true, fontSize: estado.fonte,
     tabSize: 4, insertSpaces: true, accessibilitySupport: estado.leitor ? "on" : "auto",
-    fontFamily: "'Cascadia Code', Consolas, 'Courier New', monospace", minimap: { enabled: false },
+    fontFamily: "'Atkinson Hyperlegible Mono', 'Cascadia Code', Consolas, monospace", minimap: { enabled: false },
     scrollBeyondLastLine: false, renderWhitespace: "selection", padding: { top: 8 } };
   editor = monaco.editor.create($("#editor"), Object.assign({ model: null }, comum));
   editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, rodar);
@@ -588,6 +637,7 @@ function iniciarMonaco() {
   });
   pyEditor = monaco.editor.create($("#python"), Object.assign({ value: "", language: "python", readOnly: true,
     lineNumbers: "on", fontSize: 13 }, comum));
+  if (document.fonts) document.fonts.ready.then(() => monaco.editor.remeasureFonts());
   comecar();
 }
 
@@ -664,7 +714,7 @@ function apagar(nome) {
 function itemLista(id, rotulo, extra) {
   const li = document.createElement("li");
   li.className = id === estado.aberto ? "ativo" : "";
-  li.innerHTML = `<button class="abrir"><span aria-hidden="true">🎭</span><span class="nome"></span></button>`;
+  li.innerHTML = `<button class="abrir"><svg class="ic-ls" aria-hidden="true"><use href="#i-ls"/></svg><span class="nome"></span></button>`;
   const b = li.querySelector(".abrir");
   b.querySelector(".nome").textContent = rotulo;
   b.title = dicaDe(id);
@@ -681,7 +731,7 @@ function desenharLista() {
   meus.textContent = ""; ex.textContent = "";
   for (const nome of Object.keys(estado.meus).sort()) {
     const x = document.createElement("button");
-    x.className = "x"; x.textContent = "🗑"; x.title = "Apagar"; x.setAttribute("aria-label", `Apagar ${nome}`);
+    x.className = "x"; x.innerHTML = '<svg class="ic"><use href="#i-lixo"/></svg>'; x.title = "Apagar"; x.setAttribute("aria-label", `Apagar ${nome}`);
     x.addEventListener("click", (e) => { e.stopPropagation(); apagar(nome); });
     meus.appendChild(itemLista("meus/" + nome, nome, x));
   }
@@ -704,7 +754,7 @@ function desenharAbas() {
     const d = document.createElement("div");
     d.className = "aba" + (id === estado.aberto ? " ativo" : "");
     d.title = id;
-    d.innerHTML = `<span aria-hidden="true">🎭</span><span class="nome"></span><button class="x" title="Fechar">×</button>`;
+    d.innerHTML = `<svg class="ic-ls" aria-hidden="true"><use href="#i-ls"/></svg><span class="nome"></span><button class="x" title="Fechar"><svg class="ic"><use href="#i-x"/></svg></button>`;
     d.querySelector(".nome").textContent = nomeDe(id);
     d.tabIndex = 0;
     d.setAttribute("role", "button");
@@ -882,7 +932,7 @@ function marcarErro() {
     monaco.editor.setModelMarkers(m, "larp", [{ startLineNumber: n, endLineNumber: n, startColumn: 1,
       endColumn: m.getLineMaxColumn(n), message: antes, severity: monaco.MarkerSeverity.Error }]);
   }
-  status(`❌ Erro na linha ${n}. Clique no 📍 da SAÍDA para ir até ela.`);
+  status(`Corta! Erro na linha ${n}. Clique no 📍 da SAÍDA para ir até ela.`);
   return true;
 }
 
@@ -915,7 +965,9 @@ function terminou() {
   rodando = false;
   botoes();
   status("● Python pronto");
-  $("#st-tempo").textContent = `✓ terminou em ${((performance.now() - inicio) / 1000).toFixed(2).replace(".", ",")} s`;
+  $("#st-tempo").textContent = `Cena concluída em ${((performance.now() - inicio) / 1000).toFixed(2).replace(".", ",")} s`;
+  const area = $("#painel-saida-area");                 // a "luz do palco" acende quando termina
+  area.classList.remove("luz"); void area.offsetWidth; area.classList.add("luz");
   despejar();
   const errou = marcarErro();
   contarAura(errou || /📉 -1000 aura/.test($("#saida").textContent));
