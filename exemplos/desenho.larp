@@ -1,0 +1,12 @@
+// Desenhar: o desenho aparece na aba PÁGINA (ou abre no navegador)
+tela(400, 260, "#15120f")
+retangulo(0, 200, 400, 60, "#8c2433")          // o palco
+circulo(200, 60, 40, "#f2b544")               // a luz
+tralala i de 0 até 4 {
+    linha(200, 100, 40 + i * 80, 200, "#f2b54455", 3)
+}
+emoji(120, 170, "🦈", 50)
+emoji(200, 165, "🪵", 50)
+emoji(280, 170, "🐊", 50)
+rotulo(110, 240, "LARP Script em cena", "#fff8ee", 22)
+sahur("desenho pronto!")

@@ -285,8 +285,9 @@ def main():
         return
 
     executar(py, rt.criar_namespace(), arq, fonte, brainrot, tempo)
-    if HTML:
-        rt.salvar_html(HTML, arq, brainrot)
+    desenho = rt.desenho_svg()                    # circulo(), retangulo()... também viram página
+    if HTML or desenho:
+        rt.salvar_html(HTML + ([desenho] if desenho else []), arq, brainrot)
 
 
 if __name__ == "__main__":

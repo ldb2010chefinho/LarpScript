@@ -12,7 +12,7 @@ ARQ = "programa.larp"
 
 
 def traduzir(fonte, brainrot, hardcore):
-    """Devolve (python_gerado, pagina_html). Se der erro da LARP, imprime e devolve None."""
+    """Devolve (python_gerado, pagina_html, personagens_usados). Erro da LARP: imprime e devolve None."""
     rt.BRAINROT, rt.VERBOSE = brainrot, False
     try:
         py = lt.traduzir_programa(fonte, brainrot, False, hardcore)
@@ -22,13 +22,18 @@ def traduzir(fonte, brainrot, hardcore):
             print(f"📍 linha {e.linha} do seu .larp: {fonte.splitlines()[e.linha - 1].strip()}")
         return None
     html = rt.montar_html(lt.HTML, brainrot) if lt.HTML else ""
-    return py, html
+    usados = sorted({q[0] for linha in fonte.splitlines() if (q := lt.personagens_da_linha(linha.strip()))})
+    return py, html, usados
 
 
 def rodar(py, fonte, brainrot):
+    """Roda e devolve a página final (HTML do .larp + desenho), ou "" se não tiver."""
     larp.executar(py, rt.criar_namespace(), ARQ, fonte, brainrot)
-    if lt.HTML:
+    desenho = rt.desenho_svg()
+    if lt.HTML or desenho:
         print("🌐 Página HTML pronta: veja a aba PÁGINA")
+        return rt.montar_html(lt.HTML + ([desenho] if desenho else []), brainrot)
+    return ""
 
 
 def personagem(linha):

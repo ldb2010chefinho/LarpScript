@@ -40,3 +40,13 @@ print(_S("Olá mundo! Eu sou o Lapitos e hoje o programa funcionou"))
 print(_S("Você tem 67 anos?"))
 _entrar('python')
 print(_S("de volta ao português"))
+sotipal(_S("Hello world! I like pizza and you are cool"))
+import math
+class Gato:
+    def __init__(self, nome):
+        self.nome = nome
+    def miar(self):
+        print(self.nome + _S(" diz miau"))
+Gato(_S("Mingau")).miar()
+print(math.floor(6.7 * 10))
+print(trippi(lanche), trippi(67), trippi(True))

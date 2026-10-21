@@ -15,7 +15,7 @@ switch (dia) {
 def saudar(nome)
   puts "Oi, #{nome}!"
 end
-saudar("Lucca")
+saudar("Tralalero")
 3.times do |i|
   puts "volta #{i}"
 end

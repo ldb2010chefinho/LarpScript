@@ -53,6 +53,8 @@ DIALETO = [
     (r"^crocodilo\b", "catch"),
     (r"^bombombini\s+(.+)$", r"raise Exception(\1)"),      # Bombombini joga o erro lá de cima
     (r"^lirili\s+", "let "), (r"^larila\s+", "const "),    # Lirilì Larilà guarda valores
+    (r"^bobrito\s+", "class "),                            # Bobrito Bandito: a gangue (classe)
+    (r"^boneca\s+([\w.]+)$", r"import \1"),                # Boneca Ambalabu traz coisa de fora
     (r"^mewing$", "pass"),                                 # mewing: boca fechada, não faz nada
     (r"^corta$", "break"), (r"^segue$", "continue"),       # corta a cena / segue o baile
 ]
@@ -106,8 +108,8 @@ CLASSE = re.compile(MODS + r"(?:data\s+)?class\s+(\w+)\s*(?:extends\s+(\w+)|<\s*
 # Como o interpretador adivinha o "personagem" de cada linha (para --verbose e --hardcore)
 PERSONAGENS = [
     ("Brainrot", r"^(?:sahur|tung\s+tung|ballerina|cappuccina|patapim|brr\s+brr|tralalero|tralala|bombardiro|"
-                 r"crocodilo|bombombini|lirili|larila|mewing|corta|segue)\b|"
-                 r"\b(?:chimpanzini|skibidi|fanum|verity|rizz|sixseven|farmar_aura|lapitos)\s*\("),
+                 r"crocodilo|bombombini|lirili|larila|mewing|corta|segue|bobrito|boneca)\b|"
+                 r"\b(?:chimpanzini|skibidi|fanum|verity|rizz|sixseven|farmar_aura|lapitos|sotipal|trippi)\s*\("),
     ("Português", r"\b(funcao|escreva|enquanto|senao|retorne|verdadeiro|falso|nulo)\b|^se\b"),
     ("C++", r"\bcout\b|\bcin\b|std::"),
     ("C#", r"\bConsole\.(?:Write|ReadLine)"),
@@ -134,7 +136,7 @@ PERSONAGEM_DE = {
 }
 BRAINROT_NOMES = {"tungtung", "tralalero", "bombardiro", "ballerina", "brrbrr", "patapim", "sahur",
                   "lirili", "bombombini", "trippi", "assassino", "chimpanzini", "vaca", "boneca",
-                  "verity", "sixseven", "67", "lapitos"}
+                  "verity", "sixseven", "67", "lapitos", "sotipal", "bobrito"}
 
 STR = re.compile(r'("(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'|`[^`]*`)')
 
@@ -186,6 +188,48 @@ def fecha(c, i):
         if n == 0:
             return j
     return None
+
+
+def dividir_comandos(c):
+    """Divide 'a(); b()' nos ';' de fora de ( [ {  (c já com as strings escondidas)."""
+    partes, n, atual = [], 0, ""
+    for ch in c:
+        n += (ch in "([{") - (ch in ")]}")
+        if ch == ";" and n == 0:
+            partes.append(atual)
+            atual = ""
+        else:
+            atual += ch
+    return [p.strip() for p in partes + [atual] if p.strip()]
+
+
+def abrir_blocos(linha):
+    """Bloco numa linha só vira várias:  if (x) { a(); b() }  ->  'if (x) {', 'a()', 'b()', '}'.
+    Devolve a lista de linhas (só a própria linha, se não for esse caso)."""
+    recuo = linha[:len(linha) - len(linha.lstrip())]
+    s = linha.strip()
+    if not s or s.startswith(("<", "#", "//", "/*", '"""', "'''")):
+        return [linha]
+    mas, g = mascarar(s)
+    mas = re.sub(r"\s//.*$", "", mas).rstrip().rstrip(";").rstrip()
+    if (not mas.endswith("}") and not re.match(r"^do\s*\{.*\}\s*while\b", mas)) or "{" not in mas:
+        return [linha]
+    i = mas.index("{")
+    if mas.startswith("}"):                                  # "} else { ... }": a 1ª chave já fecha
+        i = mas.index("{", 1) if "{" in mas[1:] else -1
+    fim = fecha(mas, i) if i > 0 else None
+    cabeca = mas[:i].rstrip() if i > 0 else ""
+    if fim is None or not cabeca or cabeca[-1] in "=([,:?" or re.search(r"\breturn$", cabeca):
+        return [linha]                                       # é objeto/dicionário, não bloco
+    corpo, resto = mas[i + 1:fim].strip(), mas[fim + 1:].strip()
+    if corpo.startswith("|"):                                # bloco do Ruby { |x| ... }: deixa
+        return [linha]
+    saida = [recuo + desmascarar(cabeca, g) + " {"]
+    for cmd in dividir_comandos(corpo) or ["pass"]:
+        saida += abrir_blocos(recuo + "    " + desmascarar(cmd, g))
+    if resto:                                                # if {..} else {..} / do {..} while (..)
+        return saida + abrir_blocos(recuo + "} " + desmascarar(resto, g))
+    return saida + [recuo + "}"]
 
 
 def objetos(c):
@@ -449,7 +493,28 @@ def com_self(py, nome_classe):
 def traduzir_programa(fonte, brainrot=False, verbose=False, hardcore=False):
     MAPA.clear()
     HTML.clear()
-    linhas = fonte.lstrip("﻿").splitlines()     # ﻿ = BOM, marca invisível de alguns editores
+    linhas, origem = [], []                          # origem[i] = número da linha no .larp
+    cru = None                                       # dentro de <style>, """texto""" ou /* */: não mexe
+    for k, bruta in enumerate(fonte.lstrip("﻿").splitlines()):   # ﻿ = BOM de alguns editores
+        t = bruta.strip()
+        if cru is None:
+            m = re.match(r"^<(!doctype|html|style|body)\b", t, re.I)
+            if m:
+                cru = {"!doctype": "</html>", "html": "</html>", "style": "</style>", "body": "</body>"}[m.group(1).lower()]
+            elif t.count('"""') % 2 == 1:
+                cru = '"""'
+            elif t.startswith("/*") and "*/" not in t:
+                cru = "*/"
+            partes = [bruta] if cru else abrir_blocos(bruta)
+            if cru and cru in t.lower()[3:] and cru != '"""':
+                cru = None                           # abriu e fechou na mesma linha
+        else:
+            partes = [bruta]
+            if (cru == '"""' and t.count('"""') % 2 == 1) or (cru != '"""' and cru in t.lower()):
+                cru = None
+        for parte in partes:
+            linhas.append(parte)
+            origem.append(k + 1)
     pular = -1                                       # linhas já engolidas por juntar()
     saida, blocos, pil, pylevel = [], [], [0], 0
     sw, bf, raw, classes = [], [], None, []
@@ -493,7 +558,7 @@ def traduzir_programa(fonte, brainrot=False, verbose=False, hardcore=False):
                 + sum(1 for x in sw if x["ativo"]))
 
     for i, linha in enumerate(linhas):
-        n = i + 1
+        n = origem[i]
         if i <= pular:
             continue
         bruto = linha.strip()
@@ -529,6 +594,9 @@ def traduzir_programa(fonte, brainrot=False, verbose=False, hardcore=False):
             continue
 
         linha = re.sub(r"(;|\{|\})\s*//.*$", r"\1", linha.expandtabs(4))
+        mas_c, g_c = mascarar(linha)                          # print("x") // comentário  (sem ;)
+        if re.search(r"[)\]\x00]\s+//\s*[^\d\s(]", mas_c):
+            linha = desmascarar(re.sub(r"([)\]\x00])\s+//\s*[^\d\s(].*$", r"\1", mas_c), g_c)
         s = linha.strip()
         if not s or s.startswith(("//", "#", "-- ")):
             continue

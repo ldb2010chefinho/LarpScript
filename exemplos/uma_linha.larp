@@ -1,0 +1,25 @@
+// Blocos numa linha só: { } abre e fecha na mesma linha
+let x = 5
+if (x > 3) { console.log("grande"); console.log("mesmo") }
+patapim (x == 5) { sahur("cinco") } brr brr { sahur("outro") }
+for (let i = 0; i < 3; i++) { console.log(i) }
+function dobro(n) { return n * 2 }
+console.log(dobro(4))
+const f = (a) => { return a + 1 }
+console.log(f(1))
+class Vazio { }
+while (x > 3) { x-- }
+console.log(x)
+let p = { nome: "Ana" }
+console.log(p.nome)
+s = {1, 2}
+if x == 3 { fmt.Println("go") }
+if (x == 3) { if (x > 0) { console.log("aninhado") } }
+console.log("fim") // comentário { }
+let k = 0
+do { k++ } while (k < 4)
+console.log(k)
+bombardiro { bombombini "x" } crocodilo (e) { sahur("pegou " + str(e)) }
+try { let z = 1 / 0 } catch (e) { console.log("div") } finally { console.log("fim do try") }
+lista = [3, 1]
+print(lista[0] // 2)

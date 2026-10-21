@@ -12,6 +12,22 @@
 <meta name="description" content="LarpStudios: escreva e rode LARP Script no navegador. Feito por ldb e rezenha.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='3' fill='%23f2b544'/><g fill='none' stroke='%231a1208' stroke-width='1.7'><circle cx='8.5' cy='8.5' r='3.2'/><circle cx='16.5' cy='8.5' r='3.2'/><path d='M11.7 8.2h1.6'/></g><path d='M12.5 10.2c-.4 2.2-1.2 3.3-2 3.8h4c-.8-.5-1.6-1.6-2-3.8z' fill='%231a1208'/><path d='M6.8 16.2c2-1.8 4-1.6 5.7-.4 1.7-1.2 3.7-1.4 5.7.4-1.9 1.3-3.9 1.4-5.7.3-1.8 1.1-3.8 1-5.7-.3z' fill='%231a1208'/><text x='29.2' y='29' text-anchor='end' font-family='Arial Black, Arial, Helvetica, sans-serif' font-weight='900' font-size='13.5' fill='%231a1208'>LS</text></svg>">
 <meta name="theme-color" content="#110e0b">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icone-192.png">
+<script>
+  // Liga o service worker (sw.js): deixa o LarpStudios instalável/offline e libera o input() interativo.
+  // Na primeira visita ele precisa recarregar a página UMA vez para começar a valer.
+  if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+    navigator.serviceWorker.register("sw.js").then(() => {
+      if (window.crossOriginIsolated) return;
+      let tentou = true;
+      try { tentou = sessionStorage.getItem("larp-coi") === "1"; sessionStorage.setItem("larp-coi", "1"); } catch (e) {}
+      if (tentou) return;                          // o navegador não suporta: segue sem input interativo
+      if (navigator.serviceWorker.controller) location.reload();
+      else navigator.serviceWorker.addEventListener("controllerchange", () => location.reload());
+    }).catch(() => {});
+  }
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Mono:wght@400;600&family=Atkinson+Hyperlegible+Next:wght@400;600;700&family=Fraunces:opsz,wght@9..144,700&display=swap">
@@ -140,6 +156,14 @@
                background: none !important; padding: 0 !important; font-size: 12px; }
   .ling small { color: var(--apagado); }
   .lista-brainrot { margin: 4px 0; padding-left: 18px; }
+  #lateral ul.conquistas { padding: 0 10px 14px; }
+  #lateral ul.conquistas li { display: block; padding: 8px 10px; margin: 0 0 6px; border: 1px solid var(--borda);
+                              border-radius: 8px; color: var(--apagado); }
+  #lateral ul.conquistas li:hover { background: none; }
+  #lateral ul.conquistas li b { display: block; color: var(--texto); }
+  #lateral ul.conquistas li.ganhou { border-color: var(--destaque); color: var(--texto); }
+  #lateral ul.conquistas li.ganhou b { color: var(--destaque); }
+  #lateral ul.conquistas li:not(.ganhou) b::before { content: "🔒 "; }
   .lista-brainrot li { margin: 3px 0; }
 
   /* ---------- centro: abas, editor, painel ---------- */
@@ -158,6 +182,14 @@
   #editor textarea, #python pre { width: 100%; height: 100%; margin: 0; padding: 10px 14px; resize: none;
          border: 0; outline: 0; background: var(--fundo); color: var(--texto); font: var(--tam, 14px)/1.5 var(--mono);
          tab-size: 4; white-space: pre; overflow: auto; }
+  #simbolos { display: flex; gap: 4px; padding: 5px 6px; overflow-x: auto; flex: none; background: var(--lateral);
+              border-top: 1px solid var(--borda); }
+  #simbolos button { min-width: 38px; height: 36px; padding: 0 8px; border: 1px solid var(--borda); border-radius: 6px;
+                     font: 600 16px var(--mono); color: var(--texto); background: var(--aba); flex: none; }
+  #simbolos button:active { background: var(--destaque); color: var(--sobre-destaque); }
+  .aviso-flutuante { position: fixed; left: 50%; bottom: 40px; transform: translateX(-50%); z-index: 30;
+                     background: var(--lateral); color: var(--texto); border: 1px solid var(--destaque);
+                     border-radius: 8px; padding: 10px 16px; box-shadow: 0 10px 30px #0008; max-width: 90vw; }
   #divisor { height: 5px; flex: none; cursor: row-resize; background: var(--borda); }
   #divisor:hover, #divisor.arrastando { background: var(--destaque); }
   #painel { height: var(--painel); flex: none; display: flex; min-height: 80px; overflow: hidden; }
@@ -173,6 +205,9 @@
            white-space: pre-wrap; word-break: break-word; }
   #saida .err { color: var(--vermelho); }
   #saida .eco { color: var(--verde); }
+  #saida .entrada-viva { font: inherit; color: var(--verde); background: var(--campo); min-width: 14ch;
+                         border: 1px solid var(--destaque); border-radius: 4px; padding: 1px 6px; outline: none; }
+  #entrada-dica { margin: 0 10px 8px; font-size: 11px; color: var(--apagado); }
   #saida .aviso { color: var(--apagado); font-style: italic; }
   #pagina { width: 100%; height: 100%; border: 0; background: #fff; }
   #python { height: 100%; }
@@ -194,7 +229,7 @@
   @media (max-width: 760px) {
     #app { grid-template-columns: 44px 0 minmax(0, 1fr); }
     body.com-lateral #app { grid-template-columns: 44px 200px minmax(0, 1fr); }
-    .credito, #bt-parar .rotulo, #st-cursor, #st-tempo, .marca span { display: none; }
+    .credito, #bt-parar .rotulo, #bt-compartilhar .rotulo, #st-cursor, #st-tempo, .marca span { display: none; }
     .chave { padding: 3px 7px; font-size: 11px; }
     .boas-vindas { left: 10px; right: 10px; max-width: none; top: 42px; }
     .boas-vindas h2 { font-size: 19px; }
@@ -211,12 +246,14 @@
   <symbol id="i-stop" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></symbol>
   <symbol id="i-pasta" viewBox="0 0 24 24"><path d="M3 6.5h6l2 2h10v10.5H3z"/></symbol>
   <symbol id="i-ajustes" viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></symbol>
+  <symbol id="i-trofeu" viewBox="0 0 24 24"><path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8.5 20h7M10 17h4v3h-4z"/></symbol>
   <symbol id="i-ajuda" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .9-1 1.7M12 17h.01"/></symbol>
   <symbol id="i-abrir" viewBox="0 0 24 24"><path d="M12 15V4M7.5 8.5 12 4l4.5 4.5M4 15v5h16v-5"/></symbol>
   <symbol id="i-baixar" viewBox="0 0 24 24"><path d="M12 4v11M7.5 10.5 12 15l4.5-4.5M4 15v5h16v-5"/></symbol>
   <symbol id="i-limpar" viewBox="0 0 24 24"><path d="M5 20h14M8 16l9-9-3-3-9 9 3 3zM10.5 13.5l-3-3"/></symbol>
   <symbol id="i-mais" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
   <symbol id="i-lixo" viewBox="0 0 24 24"><path d="M4 7h16M9.5 7V4.5h5V7M6.5 7l1 13h9l1-13"/></symbol>
+  <symbol id="i-compartilhar" viewBox="0 0 24 24"><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.2 10.9l7.6-3.8M8.2 13.1l7.6 3.8"/></symbol>
   <symbol id="i-x" viewBox="0 0 24 24"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></symbol>
   <symbol id="i-ls" viewBox="0 0 16 16"><rect width="16" height="16" rx="2" fill="#f2b544" stroke="none"/><text x="14.6" y="14.2" text-anchor="end" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="7.6" fill="#1a1208" stroke="none">LS</text></symbol>
   <symbol id="i-arquivo" viewBox="0 0 24 24"><path d="M6 3h8.5L19 7.5V21H6zM14 3v5h5"/></symbol>
@@ -231,6 +268,7 @@
     <label class="chave" title="Só aceita código bem no personagem (larp as python:)"><input type="checkbox" id="op-hardcore"> <span class="rotulo">Hardcore</span></label>
     <span class="espaco"></span>
     <button id="bt-abrir" title="Abrir um .larp do computador" aria-label="Abrir um arquivo .larp do computador"><svg class="ic"><use href="#i-abrir"/></svg></button>
+    <button id="bt-compartilhar" title="Compartilhar este código por link (WhatsApp, etc.)" aria-label="Compartilhar este código por link"><svg class="ic"><use href="#i-compartilhar"/></svg><span class="rotulo">Compartilhar</span></button>
     <button id="bt-baixar" title="Baixar este arquivo" aria-label="Baixar este arquivo"><svg class="ic"><use href="#i-baixar"/></svg></button>
     <span class="credito">Feito por <b>ldb</b> e <b>rezenha</b></span>
   </header>
@@ -238,6 +276,7 @@
   <nav id="atividade" aria-label="Painéis laterais">
     <button data-vista="arquivos" class="ativo" title="Explorador" aria-label="Explorador de arquivos"><svg class="ic"><use href="#i-pasta"/></svg></button>
     <button data-vista="config" title="Aparência e acessibilidade" aria-label="Aparência e acessibilidade"><svg class="ic"><use href="#i-ajustes"/></svg></button>
+    <button data-vista="conquistas" title="Conquistas" aria-label="Conquistas"><svg class="ic"><use href="#i-trofeu"/></svg></button>
     <button data-vista="ajuda" title="Ajuda" aria-label="Ajuda"><svg class="ic"><use href="#i-ajuda"/></svg></button>
   </nav>
 
@@ -272,8 +311,16 @@
           <p>No editor, <kbd>Tab</kbd> coloca espaços. Para o <kbd>Tab</kbd> sair do editor, aperte
              <kbd>Ctrl+M</kbd> antes. <kbd>Alt+F1</kbd> abre a ajuda de acessibilidade do editor.</p>
         </fieldset>
+        <fieldset>
+          <legend>Celular</legend>
+          <label><input type="checkbox" id="op-simbolos"> Barra de símbolos { } ( ) ; " embaixo do editor</label>
+        </fieldset>
         <button id="bt-dicas">💡 Mostrar as dicas de boas-vindas</button>
       </div>
+    </section>
+    <section data-vista="conquistas" hidden>
+      <div class="titulo-lateral">CONQUISTAS <span id="conq-contagem"></span></div>
+      <ul id="lista-conquistas" class="conquistas"></ul>
     </section>
     <section data-vista="ajuda" hidden>
       <div class="titulo-lateral">AJUDA</div>
@@ -321,6 +368,7 @@
       <div style="margin-top:12px"><button class="botao-forte" id="bv-ok">Entrar em cena</button></div>
     </div>
     <div id="editor"></div>
+    <div id="simbolos" role="toolbar" aria-label="Símbolos para digitar no celular" hidden></div>
     <div id="divisor" title="Arraste para mudar o tamanho"></div>
     <section id="painel">
       <div id="painel-saida-area">
@@ -340,6 +388,7 @@
       <div id="painel-entrada">
         <label for="entrada">ENTRADA <small>— uma resposta por linha</small></label>
         <textarea id="entrada" spellcheck="false" placeholder="respostas para input() / prompt()"></textarea>
+        <p id="entrada-dica" hidden>Opcional: com a caixa vazia, o programa pergunta na SAÍDA e espera você digitar.</p>
       </div>
     </section>
   </main>
@@ -360,7 +409,7 @@
      com um loop infinito, e o botão Parar pode simplesmente desligar o ajudante. -->
 <script type="text/plain" id="codigo-worker">
 importScripts("https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js");
-let py = null, entradas = [];
+let py = null, entradas = [], comp = null;      // comp = memória compartilhada para o input()
 
 function saida(tipo) {
   const dec = new TextDecoder();
@@ -371,10 +420,19 @@ self.onmessage = async (ev) => {
   const m = ev.data;
   if (m.tipo === "iniciar") {
     try {
+      if (m.sab) comp = { ctrl: new Int32Array(m.sab, 0, 2), dados: new Uint8Array(m.sab, 8) };
       py = await loadPyodide();
       py.setStdout(saida("out"));
       py.setStderr(saida("err"));
       py.setStdin({ stdin() {
+        if (!entradas.length && comp) {
+          // pede para a página e DORME até você digitar (Atomics.wait só existe com o SharedArrayBuffer)
+          Atomics.store(comp.ctrl, 0, 0);
+          postMessage({ tipo: "pedir" });
+          Atomics.wait(comp.ctrl, 0, 0);
+          if (Atomics.load(comp.ctrl, 0) === 2) return null;
+          return new TextDecoder().decode(comp.dados.slice(0, comp.ctrl[1])) + "\n";
+        }
         if (!entradas.length) { postMessage({ tipo: "faltou" }); return null; }
         const linha = entradas.shift();
         postMessage({ tipo: "eco", s: linha });
@@ -395,10 +453,11 @@ self.onmessage = async (ev) => {
       const ponte = py.pyimport("ponte");
       const r = ponte.traduzir(m.fonte, m.brainrot, m.hardcore);
       if (r) {
-        const [codigo, html] = r.toJs();
+        const [codigo, html, usados] = r.toJs();
         r.destroy();
-        postMessage({ tipo: "py", codigo, html });
-        ponte.rodar(codigo, m.fonte, m.brainrot);
+        postMessage({ tipo: "py", codigo, html, usados });
+        const pagina = ponte.rodar(codigo, m.fonte, m.brainrot);
+        if (pagina) postMessage({ tipo: "pagina", html: pagina });
       }
     } catch (e) {
       postMessage({ tipo: "err", s: "💥 " + e + "\n" });
@@ -537,7 +596,7 @@ function registrarLarp() {
     prints: ["puts", "echo", "escreva", "print", "println", "cout", "printf", "prompt", "input"],
     brainrot: ["tung", "sahur", "ballerina", "cappuccina", "patapim", "brr", "tralala", "tralalero", "vezes",
       "bombardiro", "crocodilo", "bombombini", "lirili", "larila", "mewing", "corta", "segue", "sigma", "npc",
-      "ohio", "lapitos", "sixseven", "skibidi", "fanum", "verity", "rizz", "farmar_aura", "aura", "chimpanzini"],
+      "ohio", "lapitos", "sotipal", "trippi", "bobrito", "boneca", "sixseven", "skibidi", "fanum", "verity", "rizz", "farmar_aura", "aura", "chimpanzini"],
     tokenizer: {
       root: [
         [/\b(larp)(\s+)(as)\b/, ["larp", "", "larp"]],
@@ -843,6 +902,36 @@ const PAGINA_VAZIA = `<!DOCTYPE html><meta charset="utf-8"><body style="font:15p
   ou um bloco <code>&lt;style&gt;</code> no seu .larp<br>e a página aparece aqui.</div></body>`;
 
 // ---------------- o Python (Pyodide num Web Worker) ----------------
+// Com o service worker, o navegador libera o SharedArrayBuffer: o worker DORME no input() até
+// você digitar. Sem ele (ex.: Safari), as respostas vêm da caixa ENTRADA, como antes.
+const SAB = window.crossOriginIsolated && typeof SharedArrayBuffer !== "undefined"
+  ? new SharedArrayBuffer(8 + 65536) : null;
+
+function pedirEntrada() {
+  despejar();
+  mostrarAba("saida");
+  const campo = document.createElement("input");
+  campo.className = "entrada-viva";
+  campo.setAttribute("aria-label", "O programa está esperando: digite a resposta e aperte Enter");
+  campo.spellcheck = false;
+  $("#saida").appendChild(campo);
+  campo.focus();
+  status("⌨️ O programa está esperando você digitar na SAÍDA (Enter envia)");
+  campo.addEventListener("keydown", (e) => {
+    if (e.key !== "Enter") return;
+    e.preventDefault();
+    const bytes = new TextEncoder().encode(campo.value).slice(0, 65536);
+    campo.remove();
+    escrever("eco", new TextDecoder().decode(bytes) + "\n");
+    const ctrl = new Int32Array(SAB, 0, 2);
+    new Uint8Array(SAB, 8).set(bytes);
+    ctrl[1] = bytes.length;
+    Atomics.store(ctrl, 0, 1);
+    Atomics.notify(ctrl, 0);                       // acorda o worker
+    conquista("conversa");
+    status("▶ Rodando…");
+  });
+}
 let worker = null, pronto = false, rodando = false, pendente = false, inicio = 0, temHtml = false;
 const status = (t) => { $("#st-python").textContent = t; };
 
@@ -853,7 +942,7 @@ function iniciarWorker() {
   worker = new Worker(url);
   worker.onmessage = aoMensagem;
   worker.onerror = () => falhou("o navegador não deixou o Python começar");
-  worker.postMessage({ tipo: "iniciar", arquivos: DADOS.arquivos });
+  worker.postMessage({ tipo: "iniciar", arquivos: DADOS.arquivos, sab: SAB });
 }
 
 function falhou(motivo) {
@@ -868,9 +957,11 @@ function aoMensagem(ev) {
   if (m.tipo === "out") escrever("out", m.s);
   else if (m.tipo === "err") escrever("err", m.s);
   else if (m.tipo === "eco") escrever("eco", m.s + "\n");
+  else if (m.tipo === "pedir") pedirEntrada();
   else if (m.tipo === "faltou") escrever("aviso", "\n⌨️ O programa pediu uma entrada e a caixa ENTRADA acabou. Escreva as respostas lá (uma por linha) e rode de novo.\n");
   else if (m.tipo === "py") {
     ed.python(m.codigo);
+    usadosAgora = m.usados || [];
     temHtml = !!m.html;
     $("#pagina").srcdoc = m.html || PAGINA_VAZIA;
     if (temHtml) avisarAba("pagina");
@@ -880,6 +971,11 @@ function aoMensagem(ev) {
     status("● Python pronto");
     if (pendente) { pendente = false; enviar(); }
   } else if (m.tipo === "falhou") falhou(m.s);
+  else if (m.tipo === "pagina") {
+    temHtml = true;
+    $("#pagina").srcdoc = m.html;
+    avisarAba("pagina");
+  }
   else if (m.tipo === "personagem") $("#st-personagem").textContent = "🎭 " + (m.nome || "neutro");
 }
 
@@ -972,6 +1068,67 @@ function mostrarAura() {
   document.body.classList.toggle("brainrot", $("#op-brainrot").checked);
 }
 
+// ---------- conquistas (ficam salvas neste navegador) ----------
+const CONQUISTAS = [
+  ["estreia", "🎬 Estreia", "Rodar o primeiro programa."],
+  ["poliglota", "🎭 Poliglota", "Usar 5 linguagens no mesmo arquivo."],
+  ["babel", "🗼 Torre de Babel", "Usar 10 linguagens no mesmo arquivo."],
+  ["sixseven", "🤲 Six Seven", "Fazer aparecer um 67 na saída."],
+  ["brainrot", "🪵 Fluente em brainrot", "Programar no dialeto brainrot (sahur, patapim, tralala...)."],
+  ["lapitos", "🔤 Amigo do Lapitos", "Traduzir com o Lapitos ou o Sotipal."],
+  ["corta", "✂️ Corta!", "Levar a primeira bronca (erro)."],
+  ["volta", "💪 Volta por cima", "Corrigir um erro e rodar de novo sem erro."],
+  ["pagina", "🌐 Cenógrafo", "Gerar uma página HTML ou um desenho."],
+  ["hardcore", "💀 Ator de método", "Rodar sem bronca no modo Hardcore."],
+  ["loop", "🛑 Salvo pelo gongo", "Parar um programa com o botão Parar."],
+  ["conversa", "⌨️ Papo reto", "Responder um input() digitando na SAÍDA."],
+  ["compartilhou", "🔗 Em turnê", "Compartilhar um código por link."],
+  ["aura", "✨ Aura infinita", "Juntar 10.000 de aura no brainrot."],
+];
+let usadosAgora = [];
+function conquista(id) {
+  estado.conquistas = estado.conquistas || {};
+  if (estado.conquistas[id]) return;
+  const c = CONQUISTAS.find((x) => x[0] === id);
+  if (!c) return;
+  estado.conquistas[id] = Date.now();
+  salvar();
+  desenharConquistas();
+  avisar(`🏆 Conquista desbloqueada: ${c[1]}`);
+}
+function desenharConquistas() {
+  const ul = $("#lista-conquistas"), ganhas = estado.conquistas || {};
+  ul.textContent = "";
+  for (const [id, nome, como] of CONQUISTAS) {
+    const li = document.createElement("li");
+    li.className = ganhas[id] ? "ganhou" : "";
+    li.innerHTML = "<b></b><span></span>";
+    li.querySelector("b").textContent = nome;
+    li.querySelector("span").textContent = como;
+    ul.appendChild(li);
+  }
+  $("#conq-contagem").textContent = `${Object.keys(ganhas).length}/${CONQUISTAS.length}`;
+}
+function conferirConquistas(errou) {
+  const saida = $("#saida").textContent, fonte = ed.texto();
+  conquista("estreia");
+  if (usadosAgora.length >= 5) conquista("poliglota");
+  if (usadosAgora.length >= 10) conquista("babel");
+  if (/(^|\D)67(\D|$)/.test(saida)) conquista("sixseven");
+  if (usadosAgora.includes("Brainrot")) conquista("brainrot");
+  if (/\b(lapitos|sotipal)\b/.test(fonte)) conquista("lapitos");
+  if (temHtml) conquista("pagina");
+  if (errou) {
+    conquista("corta");
+    estado.ultimoErro = estado.aberto;
+  } else {
+    if (estado.ultimoErro === estado.aberto) conquista("volta");
+    estado.ultimoErro = null;
+    if ($("#op-hardcore").checked && /^\s*larp\s+as\b/m.test(fonte)) conquista("hardcore");
+  }
+  if ((estado.aura || 0) >= 10000) conquista("aura");
+}
+
 function terminou() {
   rodando = false;
   botoes();
@@ -982,6 +1139,7 @@ function terminou() {
   despejar();
   const errou = marcarErro();
   contarAura(errou || /📉 -1000 aura/.test($("#saida").textContent));
+  conferirConquistas(errou);
   if (temHtml && !errou) mostrarAba("pagina");   // tem HTML? abre a PÁGINA. Senão fica na SAÍDA.
 }
 
@@ -990,6 +1148,8 @@ function parar() {
   const estava = rodando || pendente;
   rodando = pendente = false;
   if (estava) escrever("aviso", "\n■ Programa parado. Recarregando o Python…\n");
+  if (estava) conquista("loop");
+  for (const campo of $$("#saida .entrada-viva")) campo.remove();
   $("#st-tempo").textContent = "";
   iniciarWorker();
   botoes();
@@ -1003,10 +1163,103 @@ function comecar() {
   abrir(estado.aberto);
   aplicarTema(estado.tema);
   aplicarFonte(estado.fonte);
-  if (!estado.viuBoasVindas) boasVindas(true);
+  desenharConquistas();
+  if (!estado.viuBoasVindas && !location.hash.startsWith("#codigo=")) boasVindas(true);
   ed.python("# Rode o programa para ver aqui o Python gerado.");
+  abrirDoLink();
   $("#pagina").srcdoc = PAGINA_VAZIA;
 }
+
+// ---------- compartilhar por link: o código vai DENTRO do link (comprimido) ----------
+async function comprimir(texto) {
+  const bytes = new TextEncoder().encode(texto);
+  if (!window.CompressionStream) return "t" + paraBase64(bytes);
+  const fluxo = new Blob([bytes]).stream().pipeThrough(new CompressionStream("deflate-raw"));
+  return "z" + paraBase64(new Uint8Array(await new Response(fluxo).arrayBuffer()));
+}
+async function descomprimir(s) {
+  const bytes = deBase64(s.slice(1));
+  if (s[0] !== "z") return new TextDecoder().decode(bytes);
+  const fluxo = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("deflate-raw"));
+  return new TextDecoder().decode(await new Response(fluxo).arrayBuffer());
+}
+function paraBase64(bytes) {
+  let bin = "";
+  for (const b of bytes) bin += String.fromCharCode(b);
+  return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+function deBase64(s) {
+  const bin = atob(s.replace(/-/g, "+").replace(/_/g, "/"));
+  return Uint8Array.from(bin, (c) => c.charCodeAt(0));
+}
+function avisar(texto) {
+  const a = document.createElement("div");
+  a.className = "aviso-flutuante";
+  a.setAttribute("role", "status");
+  a.textContent = texto;
+  document.body.appendChild(a);
+  setTimeout(() => a.remove(), 3500);
+}
+async function compartilhar() {
+  const link = `${location.origin}${location.pathname}#codigo=${await comprimir(ed.texto())}`;
+  const titulo = `${nomeDe(estado.aberto)} no LarpStudios`;
+  conquista("compartilhou");
+  if (navigator.share && matchMedia("(pointer: coarse)").matches) {
+    try { await navigator.share({ title: titulo, text: "Olha o que eu fiz em LARP Script 🎭", url: link }); return; }
+    catch (e) { /* cancelou: copia o link */ }
+  }
+  try {
+    await navigator.clipboard.writeText(link);
+    avisar("🔗 Link copiado! Cole no WhatsApp: quem abrir vê o seu código pronto para rodar.");
+  } catch (e) {
+    window.prompt && window.prompt("Copie o link:", link);
+  }
+}
+async function abrirDoLink() {
+  if (!location.hash.startsWith("#codigo=")) return;
+  try {
+    const texto = await descomprimir(location.hash.slice(8));
+    let nome = "compartilhado.larp", k = 2;
+    while (nome in estado.meus && estado.meus[nome] !== texto) nome = `compartilhado${k++}.larp`;
+    novoArquivo(nome, texto);
+    avisar("🎭 Alguém te mandou um código! Aperte ▶ Rodar para ver.");
+  } catch (e) {
+    avisar("⚠️ Esse link de código veio quebrado.");
+  }
+  history.replaceState(null, "", location.pathname);
+}
+$("#bt-compartilhar").addEventListener("click", compartilhar);
+window.addEventListener("hashchange", abrirDoLink);       // colou um link com a página já aberta
+
+// ---------- barra de símbolos (celular) ----------
+const SIMBOLOS = ["{", "}", "(", ")", "[", "]", ";", '"', "'", "=", "+", "-", "*", "/", "<", ">", ":", ",", ".", "_", "!", "&", "|", "⇥"];
+for (const sim of SIMBOLOS) {
+  const b = document.createElement("button");
+  b.textContent = sim;
+  b.setAttribute("aria-label", sim === "⇥" ? "Tab (4 espaços)" : `Inserir ${sim}`);
+  b.addEventListener("mousedown", (e) => e.preventDefault());          // não tira o foco do editor
+  b.addEventListener("click", () => inserirTexto(sim === "⇥" ? "    " : sim));
+  $("#simbolos").appendChild(b);
+}
+function inserirTexto(t) {
+  if (monacoOk) {
+    editor.executeEdits("simbolos", [{ range: editor.getSelection(), text: t, forceMoveMarkers: true }]);
+    editor.focus();
+  } else {
+    editor.setRangeText(t, editor.selectionStart, editor.selectionEnd, "end");
+    guardarTexto(estado.aberto, editor.value);
+    editor.focus();
+  }
+}
+function mostrarSimbolos() {
+  if (estado.simbolos === undefined) estado.simbolos = matchMedia("(pointer: coarse)").matches;
+  $("#op-simbolos").checked = estado.simbolos;
+  $("#simbolos").hidden = !estado.simbolos;
+}
+$("#op-simbolos").addEventListener("change", () => { estado.simbolos = $("#op-simbolos").checked; mostrarSimbolos(); salvar(); });
+mostrarSimbolos();
+
+if (SAB) { $("#entrada-dica").hidden = false; $("#entrada").placeholder = "(opcional) respostas prontas, uma por linha"; }
 
 $("#bt-rodar").addEventListener("click", rodar);
 $("#bt-parar").addEventListener("click", parar);
@@ -1068,6 +1321,24 @@ fanum(lanche)
 verity(lanche)
 sahur(rizz("sigma"))
 farmar_aura(1000)`],
+  ["Desenhar: tela, círculo, emoji", `tela(400, 260)
+circulo(200, 80, 40, "#f2b544")
+retangulo(0, 200, 400, 60, "#8c2433")
+emoji(200, 170, "🦈", 60)
+rotulo(120, 240, "Tralalero em cena!")`],
+  ["Classe e import: Bobrito, Boneca", `boneca math
+bobrito Gato {
+    ballerina constructor(nome) {
+        this.nome = nome
+    }
+    ballerina miar() {
+        sahur(this.nome + " diz miau")
+    }
+}
+Gato.new("Mingau").miar()`],
+  ["Sotipal: inglês para português", `sotipal("Hello world! I like pizza")
+larp as sotipal
+sahur("Good morning, you are cool")`],
   ["Lapitos: tudo em inglês", `lapitos("Bom dia, meu nome é Tralalero")
 larp as lapitos
 sahur("Olá mundo! Eu gosto de pizza")`],

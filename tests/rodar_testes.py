@@ -32,6 +32,8 @@ CASOS = [
     ("erro_linha", "erro_linha.larp", [], ""),
     ("oi", "oi.larp", [], ""),
     ("todas_linguagens", "todas_linguagens.larp", [], ""),
+    ("uma_linha", "uma_linha.larp", [], ""),
+    ("desenho", "desenho.larp", [], ""),
     ("brainrot", "brainrot.larp", [], ""),
     ("brainrot_com_brainrot", "brainrot.larp", ["--brainrot"], ""),
     ("melhorias", "melhorias.larp", ["--brainrot"], ""),

@@ -83,8 +83,80 @@ PALAVRAS = {
     "primeiro": "first", "último": "last", "zero": "zero", "dois": "two", "três": "three",
     "quatro": "four", "cinco": "five", "seis": "six", "sete": "seven", "oito": "eight", "nove": "nine",
     "dez": "ten", "cem": "one hundred", "mil": "one thousand",
+    # mais palavras do dia a dia
+    "pai": "father", "mãe": "mother", "irmão": "brother", "irmã": "sister", "família": "family",
+    "professor": "teacher", "professora": "teacher", "aluno": "student", "aula": "class",
+    "prova": "test", "dever": "homework", "livro": "book", "caderno": "notebook", "computador": "computer",
+    "celular": "phone", "tela": "screen", "teclado": "keyboard", "internet": "internet", "site": "website",
+    "vídeo": "video", "foto": "photo", "mensagem": "message", "senha": "password", "usuário": "user",
+    "cidade": "city", "país": "country", "rua": "street", "carro": "car", "ônibus": "bus", "bola": "ball",
+    "time": "team", "gol": "goal", "futebol": "soccer", "campeão": "champion", "ganhar": "to win",
+    "perder": "to lose", "jogador": "player", "jogadores": "players", "partida": "match", "tabela": "table",
+    "tabelas": "tables", "pontuação": "score", "vitória": "victory", "derrota": "defeat", "empate": "draw",
+    "rápida": "fast", "devagar": "slowly", "cedo": "early", "tarde": "late", "semana": "week", "mês": "month",
+    "segunda": "monday", "terça": "tuesday", "quarta": "wednesday", "quinta": "thursday", "sexta": "friday",
+    "sábado": "saturday", "domingo": "sunday", "manhã": "morning", "frio": "cold", "quente": "hot",
+    "chuva": "rain", "sol": "sun", "lua": "moon", "estrela": "star", "céu": "sky", "mar": "sea",
+    "fogo": "fire", "terra": "earth", "planeta": "planet", "dinheiro": "money", "preço": "price",
+    "loja": "store", "comprar": "to buy", "vender": "to sell", "trabalho": "work", "trabalhar": "to work",
+    "estudar": "to study", "estuda": "studies", "ler": "to read", "escrever": "to write", "falar": "to speak",
+    "fala": "speaks", "ouvir": "to hear", "pensar": "to think", "saber": "to know", "entender": "to understand",
+    "aprender": "to learn", "ensinar": "to teach", "ajudar": "to help", "precisa": "needs", "preciso": "need",
+    "abrir": "to open", "fechar": "to close", "entrar": "to enter", "sair": "to leave", "chegar": "to arrive",
+    "esperar": "to wait", "procurar": "to look for", "encontrar": "to find", "mudar": "to change",
+    "trocou": "changed", "trocar": "to change", "inglês": "English", "português": "Portuguese",
+    "amarelo": "yellow", "azul": "blue", "vermelho": "red", "verde": "green", "preto": "black",
+    "branco": "white", "roxo": "purple", "rosa": "pink", "laranja": "orange", "cinza": "gray",
+    "forte": "strong", "fraco": "weak", "alto": "tall", "baixo": "short", "engraçado": "funny",
+    "estranho": "weird", "incrível": "amazing", "perfeito": "perfect", "pronto": "ready", "cansado": "tired",
+    "fome": "hunger", "sede": "thirst", "sono": "sleepy", "medo": "fear", "amor": "love", "raiva": "anger",
 }
 PALAVRAS = {k.strip(): v for k, v in PALAVRAS.items()}
+
+# Sotipal (Lapitos ao contrário): inglês -> português
+FRASES_EN = {}
+for pt, en in FRASES.items():
+    if " " in en:
+        FRASES_EN.setdefault(en.lower(), pt)
+FRASES_EN.update({"i'm": "eu sou", "i am": "eu sou", "you are": "você é", "thank you": "obrigado",
+                  "good job": "bom trabalho", "game over": "fim de jogo", "you win": "você ganhou",
+                  "you lose": "você perdeu", "see you": "até mais", "of course": "claro"})
+PALAVRAS_EN = {}
+for pt, en in PALAVRAS.items():
+    if " " not in en:
+        PALAVRAS_EN.setdefault(en.lower(), pt)
+PALAVRAS_EN.update({"the": "o", "a": "um", "an": "um", "is": "é", "are": "são", "am": "sou", "was": "era",
+                    "i": "eu", "you": "você", "it": "isso", "and": "e", "or": "ou", "not": "não", "to": "para",
+                    "of": "de", "in": "em", "on": "em", "at": "em", "with": "com", "for": "para", "my": "meu",
+                    "your": "seu", "this": "isso", "that": "aquilo", "hi": "oi", "hello": "olá", "yes": "sim",
+                    "no": "não", "good": "bom", "bad": "ruim", "cool": "legal", "win": "ganhar", "lose": "perder",
+                    "time": "tempo", "times": "vezes", "like": "gosto", "love": "amo", "have": "tenho",
+                    "has": "tem", "do": "faço", "does": "faz", "can": "pode", "will": "vai", "what": "o que",
+                    "why": "por que", "who": "quem", "how": "como", "where": "onde", "when": "quando"})
+
+
+def traduzir(texto, frases, palavras):
+    """Troca frases inteiras primeiro e depois palavra por palavra."""
+    prontas = []                      # frases já traduzidas ficam guardadas para não traduzir de novo
+
+    def guarda(m, nova):
+        prontas.append(_caixa(m.group(0), nova))
+        return f"\x01{len(prontas) - 1}\x01"
+
+    for velha, nova in sorted(frases.items(), key=lambda x: -len(x[0])):
+        texto = re.sub(rf"(?<!\w){re.escape(velha)}(?!\w)", lambda m, nova=nova: guarda(m, nova), texto,
+                       flags=re.IGNORECASE)
+
+    def palavra(m):
+        p = m.group(0)
+        antes = m.string[:m.start()].rstrip()
+        if p[:1].isupper() and antes and antes[-1] not in ".!?:" and p != "I":
+            return p                  # Maiúscula no meio da frase = nome próprio (Volta, Tralalero...)
+        nova = palavras.get(p.lower())
+        return _caixa(p, nova) if nova else p
+
+    texto = re.sub(r"[^\W\d_]+(?:'[a-z]+)?", palavra, texto)
+    return re.sub(r"\x01(\d+)\x01", lambda m: prontas[int(m.group(1))], texto)
 
 
 def _caixa(original, traduzido):
@@ -97,21 +169,10 @@ def _caixa(original, traduzido):
 
 
 def ingles(texto):
-    """Traduz um texto do português para o inglês (do jeito Lapitos)."""
-    prontas = []                      # frases já traduzidas ficam guardadas para não traduzir de novo
+    """Lapitos: português -> inglês."""
+    return traduzir(texto, FRASES, PALAVRAS)
 
-    def guarda(m, en):
-        prontas.append(_caixa(m.group(0), en))
-        return f"\x01{len(prontas) - 1}\x01"
 
-    for pt, en in sorted(FRASES.items(), key=lambda x: -len(x[0])):
-        texto = re.sub(rf"(?<!\w){re.escape(pt)}(?!\w)", lambda m, en=en: guarda(m, en), texto,
-                       flags=re.IGNORECASE)
-
-    def palavra(m):
-        p = m.group(0)
-        en = PALAVRAS.get(p.lower())
-        return _caixa(p, en) if en else p
-
-    texto = re.sub(r"[^\W\d_]+", palavra, texto)
-    return re.sub(r"\x01(\d+)\x01", lambda m: prontas[int(m.group(1))], texto)
+def portugues(texto):
+    """Sotipal (Lapitos de trás para frente): inglês -> português."""
+    return traduzir(texto, FRASES_EN, PALAVRAS_EN)

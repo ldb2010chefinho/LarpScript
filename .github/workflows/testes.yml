@@ -1,0 +1,17 @@
+# Roda os testes da LARP Script sozinho a cada push (aba "Actions" do GitHub)
+name: Testes
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  testes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Rodar todos os exemplos e comparar com a saída esperada
+        run: python tests/rodar_testes.py

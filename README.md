@@ -2,6 +2,8 @@
 
 # LARP Script 🎭
 
+[![Testes](https://github.com/ldb2010chefinho/LarpScript/actions/workflows/testes.yml/badge.svg)](https://github.com/ldb2010chefinho/LarpScript/actions/workflows/testes.yml)
+
 A linguagem que **finge ser todas as outras**. LARP = *live action role-playing*:
 ela não tem sintaxe própria, ela entra no personagem de Python, JavaScript, Java,
 Rust, Go, Ruby, PHP, C++, Kotlin, Lua, C#, Haskell, Elixir, português, Brainfuck, HTML e CSS. E você pode
@@ -46,7 +48,14 @@ direto no navegador, sem instalar nada e sem servidor.
 - **▶ Rodar** (`Ctrl+Enter`) e **■ Parar** (para loops infinitos)
 - painel com **SAÍDA** (console), **PÁGINA** (o HTML/CSS gerado, que abre sozinho quando existe)
   e **PYTHON** (o código traduzido)
-- caixa **ENTRADA** para as respostas de `input()` / `prompt()`, uma por linha
+- **`input()` de verdade:** o programa para e espera você digitar na SAÍDA, como no OnlineGDB
+  (a caixa **ENTRADA** continua servindo para deixar respostas prontas, uma por linha)
+- **🔗 Compartilhar:** o código vai dentro do próprio link; mande no WhatsApp e quem abrir vê o
+  programa pronto para rodar
+- **📱 App:** dá para instalar no celular ou no PC ("Instalar app" / "Adicionar à tela inicial"),
+  e depois da primeira visita ele abre até sem internet
+- **🏆 Conquistas:** 14 para desbloquear (Estreia, Torre de Babel, Six Seven, Volta por cima...)
+- **Barra de símbolos** `{ } ( ) ; "` embaixo do editor no celular
 - explorador com seus arquivos e os exemplos; tudo fica salvo no navegador
 - erro clicável: o **📍 linha N** da saída leva até a linha, que fica sublinhada em vermelho
 - a barra de baixo mostra qual linguagem a linha atual parece (🎭 JavaScript, 🎭 Ruby...)
@@ -59,6 +68,10 @@ Para testar no seu PC: `py -m http.server 8000` dentro da pasta e abra `http://l
 A primeira execução demora alguns segundos porque o
 navegador baixa o Python ([Pyodide](https://pyodide.org)).
 
+O `input()` interativo e o modo app vêm do `sw.js` (um *service worker*). No primeiro acesso a
+página recarrega uma vez sozinha para ele começar a valer. No Safari, que não suporta o truque,
+o LarpStudios continua funcionando com a caixa ENTRADA.
+
 **Mudou o tradutor ou os exemplos?** Rode `py studio\montar.py` para atualizar o `index.html`
 (o `testar` avisa se esquecer). O código do Studio fica em `studio\modelo.html`.
 
@@ -70,7 +83,8 @@ fica em **https://ldb2010chefinho.github.io/LarpScript/**.
 
 - **Funções:** `def`, `function`, `fn`, `func`, `fun`, `funcao`, arrow `(a, b) => a + b`, até com `{ }`
 - **Imprimir:** `print`, `console.log`, `System.out.println`, `puts`, `echo`, `println!("{}", x)`, `fmt.Println`, `cout <<`, `escreva`, `printf`, `Console.WriteLine` (C#), `putStrLn` (Haskell), `IO.puts` (Elixir)
-- **Blocos:** indentação (Python/Ruby), chaves `{ }` (C/Java/JS) ou `end` (Ruby/Lua)
+- **Blocos:** indentação (Python/Ruby), chaves `{ }` (C/Java/JS) ou `end` (Ruby/Lua), até numa linha só:
+  `if (x > 3) { a(); b() } else { c() }`
 - **Decisões e loops:** `if/elif/else/elsif/unless`, `switch/case`, `for (let i = 0; ...)`, `for...of`, `foreach`, `while`, `do { } while (x)`, `loop`, `5.times do |i|`, Go `for i, v := range`
 - **Erros:** `try/catch`, `try/except`, `begin/rescue`, `throw`
 - **Classes:** `class`, `constructor`, `initialize`, `this`, `@variavel`, `static`
@@ -81,6 +95,9 @@ fica em **https://ldb2010chefinho.github.io/LarpScript/**.
 - **Extras emprestados:** ternário `a ? b : c`, `.length`, `.push()`, `.toUpperCase()`, `Math.floor()`, `parseInt()`, `prompt()`, `JSON`
 - **Brainfuck:** uma linha só com `+ - < > [ ] . ,`
 - **HTML/CSS:** `<style>...</style>` e tags como `<h1>Oi</h1>` viram uma página que abre no navegador
+- **Desenhar:** `tela(400, 300)`, `circulo(x, y, raio, cor)`, `retangulo(x, y, larg, alt, cor)`,
+  `linha(x1, y1, x2, y2, cor)`, `rotulo(x, y, "texto")`, `emoji(x, y, "🦈")`. O desenho aparece na
+  página (veja `exemplos/desenho.larp`)
 
 ## O diferencial: o dialeto brainrot
 
@@ -98,17 +115,22 @@ só liga os comentários deles).
 | `bombardiro {` ... `} crocodilo (e) {` | 🐊✈️ tenta e pega | `try` / `catch` |
 | `bombombini "deu ruim"` | 🪿✈️ joga lá de cima | `throw` |
 | `lirili x = 5` / `larila MAX = 10` | 🌵🐘 guarda valores | `let` / `const` |
+| `bobrito Gato {` | 🦫 Bobrito Bandito e a gangue | `class` |
+| `boneca math` | 🐸🛞 Boneca Ambalabu traz de fora | `import` |
 | `mewing` / `corta` / `segue` | boca fechada / corta a cena / segue o baile | `pass` / `break` / `continue` |
 | `sigma` / `npc` / `ohio` | memes viram valores | `True` / `False` / `None` |
 
 **Funções-meme:** `sixseven()` (devolve 67 🤲), `fanum(lista)` (Fanum tax: rouba o último item),
 `verity(x)` (Verity sabe tudo sobre o valor), `rizz(texto)`, `skibidi(lista)` (escolhe um aleatório),
-`farmar_aura(n)` / `aura()`, `chimpanzini("pergunta")` (é o input). No `--brainrot`, todo **67**
+`farmar_aura(n)` / `aura()`, `chimpanzini("pergunta")` (é o input), `trippi(x)` (Trippi Troppi diz o tipo). No `--brainrot`, todo **67**
 impresso é comemorado com SIX SEVEN, e no fim aparece a sua aura final.
 
 **🔤 Lapitos**, o amigo que trocou as tabelas do Volta para inglês: `lapitos("Bom dia")` imprime
 `Good morning`, e `larp as lapitos` faz **todos** os prints saírem em inglês até o próximo `larp as`.
-Ele traduz sem internet, com um dicionário próprio, então o inglês às vezes sai meio brainrot.
+Ele traduz sem internet, com um dicionário próprio, então o inglês às vezes sai meio brainrot
+(e ele não traduz nomes próprios: o Volta continua Volta). O caminho inverso é o **Sotipal**
+(Lapitos de trás para frente): `sotipal("Hello world")` imprime `Olá mundo`, e `larp as sotipal`
+destroca tudo para português.
 
 Veja tudo funcionando em `exemplos/brainrot.larp`. No `--hardcore`, avise com `larp as brainrot`.
 
@@ -191,7 +213,10 @@ Quer ver isso acontecendo? Rode com `--py` (mostra o Python gerado) ou `--verbos
 - `larp_runtime.py`: Brainfuck, brainrot, funções emprestadas, página HTML
 - `exemplos\`: programas de teste
 - `index.html`: o LarpStudios montado (gerado, não edite à mão)
-- `studio\`: código do LarpStudios (`modelo.html`, `ponte.py`, `montar.py`)
+- `sw.js`, `manifest.json`, `icone-*.png`, `logo.svg`: app instalável, offline e input interativo
+- `larp_lapitos.py`: o Lapitos e o Sotipal (tradução português ⇄ inglês)
+- `.github/workflows/testes.yml`: o GitHub roda os testes sozinho a cada push
+- `studio\`: código do LarpStudios (`modelo.html`, `ponte.py`, `montar.py`, `icones.py`)
 - `tests\`: testes automáticos (`rodar_testes.py` e as saídas esperadas em `esperado\`)
 - `larp-vscode\`: cores e snippets para o VS Code (`instalar-extensao.bat` instala)
 - `.vscode\tasks.json`: **Ctrl+Shift+B** roda o arquivo aberto
@@ -209,10 +234,10 @@ a diferença: `-` é o que era esperado, `+` é o que saiu agora. Mudou de prop�
 
 ## Limitações (por enquanto)
 
-A LARP Script traduz linha por linha, então códigos muito complicados podem quebrar.
-Ainda não tem: blocos numa linha só (`if (x) { a() }`), `repeat ... until` do Lua,
-`begin ... end while` do Ruby e `input()` interativo no LarpStudios. Quando
-der erro, `--py` mostra o Python gerado e o erro aponta a linha do seu `.larp`.
+A LARP Script ainda traduz linha por linha (com alguns truques para juntar e separar linhas),
+então códigos muito complicados podem quebrar. Ainda não tem: `repeat ... until` do Lua,
+`begin ... end while` do Ruby, e o Lapitos só conhece umas 400 palavras. Quando der erro,
+`--py` mostra o Python gerado e o erro aponta a linha do seu `.larp`.
 
 ## Créditos e licença
 

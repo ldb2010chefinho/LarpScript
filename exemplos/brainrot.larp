@@ -61,3 +61,20 @@ sahur("Olá mundo! Eu sou o Lapitos e hoje o programa funcionou")
 console.log("Você tem 67 anos?")
 larp as python
 print("de volta ao português")
+
+// Sotipal: o Lapitos de trás para frente (inglês -> português)
+sotipal("Hello world! I like pizza and you are cool")
+
+// Bobrito Bandito: a gangue (classe) / Boneca Ambalabu traz de fora (import)
+boneca math
+bobrito Gato {
+    ballerina constructor(nome) {
+        this.nome = nome
+    }
+    ballerina miar() {
+        sahur(this.nome + " diz miau")
+    }
+}
+Gato.new("Mingau").miar()
+sahur(math.floor(6.7 * 10))
+sahur(trippi(lanche), trippi(67), trippi(sigma))

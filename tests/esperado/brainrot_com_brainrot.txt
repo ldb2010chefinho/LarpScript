@@ -29,5 +29,10 @@ Hello world! I am the Lapitos and today the program worked
 You have 67 years?
 🎭 Entrando no personagem: python... *ajeita o figurino*
 de volta ao português
+Olá mundo! Eu gosto de pizza e você é legal
+Mingau diz miau
+67
+🤲 SIX SEVEN! 6️⃣7️⃣
+lista número inteiro sigma/npc (bool)
 ✨ Aura final: 1000
 🪵 TUNG TUNG TUNG TUNG TUNG TUNG TUNG TUNG TUNG SAHUR!

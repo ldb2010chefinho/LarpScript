@@ -18,3 +18,7 @@ Good morning, my name is Tralalero and I like pizza
 Hello world! I am the Lapitos and today the program worked
 You have 67 years?
 de volta ao português
+Olá mundo! Eu gosto de pizza e você é legal
+Mingau diz miau
+67
+lista número inteiro sigma/npc (bool)

@@ -12,7 +12,7 @@ public class Main {
     }
     public static void main() {
         int x = 5;
-        String nome = "Lucca";
+        String nome = "Tralalero";
         System.out.println("Oi, " + nome + " " + soma(x, 2));
         for (int i = 0; i < 3; i++) {
             cout << "i=" << i << endl;

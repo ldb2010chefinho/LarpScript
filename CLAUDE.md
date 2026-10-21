@@ -76,6 +76,14 @@ continuam são juntadas por `juntar()`), generics, strings coladas, BOM, `--temp
    bombombini=throw, lirili/larila=let/const, mewing/corta/segue, sigma/npc/ohio). Funções-meme no runtime.
    Lapitos (larp_lapitos.py): amigo do dono que "trocou as tabelas do Volta para inglês"; traduz prints
    PT→EN offline. Personagem "Brainrot" no hardcore.
+8. [feito] Pacote "faça tudo": bloco numa linha só (abrir_blocos no tradutor, com origem[] para o MAPA),
+   bobrito=class, boneca=import, trippi(), Sotipal (EN→PT), nomes próprios não traduzidos, desenho
+   (tela/circulo/retangulo/linha/rotulo/emoji → SVG na página), compartilhar por link (#codigo=, deflate),
+   barra de símbolos no celular, sw.js (COOP/COEP credentialless + cache offline) → input() interativo com
+   SharedArrayBuffer/Atomics e PWA (manifest.json, icone-192/512.png gerados por studio/icones.py),
+   14 conquistas, GitHub Actions (.github/workflows/testes.yml). Nomes pessoais tirados dos exemplos.
+   Pendente: trocar o tradutor linha-a-linha por um parser de verdade (projeto grande, sessão própria);
+   GIF no README (precisa gravar a tela).
 
 ## Identidade visual do LarpStudios (siga sempre; não volte ao visual genérico)
 - Tema: bastidores de teatro. NADA de gradiente roxo/azul, Inter, cards genéricos ou emoji na interface

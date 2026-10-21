@@ -11,7 +11,7 @@ else:
 @_ballerina
 def saudar(nome):
     print(f"Oi, {nome}!")
-saudar(_S("Lucca"))
+saudar(_S("Tralalero"))
 for i in range(3):
     _tralala()
     print(f"volta {i}")

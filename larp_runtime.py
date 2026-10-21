@@ -10,8 +10,9 @@ import re
 import sys
 import time
 import types
+from html import escape as html_esc
 
-from larp_lapitos import ingles
+from larp_lapitos import ingles, portugues
 
 BRAINROT = False
 VERBOSE = False
@@ -119,6 +120,7 @@ FALAS = {
     "tralalero": "🦈 Tralalero Tralala!", "bombardiro": "🐊✈️ Bombardiro Crocodilo decolou!",
     "ballerina": "💃 Ballerina Cappuccina entrou dançando",
     "brrbrr": "🌴 Brr Brr Patapim chegou", "patapim": "🌴 Brr Brr Patapim chegou",
+    "bobrito": "🦫🔫 Bobrito Bandito chegou com a gangue",
     "lirili": "🌵🐘 Lirilì Larilà chegou de sandália e parou o relógio",
     "bombombini": "🪿✈️ Bombombini Gusini decolou atrás do Bombardiro",
     "trippi": "🦐🐱 Trippi Troppi Troppa Trippa!",
@@ -161,9 +163,13 @@ def bombardiro():
 
 def entrar(nome):
     global LAPITOS
-    LAPITOS = nome == "lapitos"                  # 'larp as lapitos' liga; outro personagem desliga
-    if LAPITOS:
+    # 'larp as lapitos' (-> inglês) e 'larp as sotipal' (-> português) ligam; outro personagem desliga
+    LAPITOS = nome if nome in ("lapitos", "sotipal") else False
+    if LAPITOS == "lapitos":
         print("🔤 Lapitos chegou e trocou tudo para inglês (igual fez com as tabelas do Volta)")
+        return
+    if LAPITOS == "sotipal":
+        print("🔤 Sotipal (o Lapitos de trás para frente) destrocou tudo para português")
         return
     if nome in FALAS:
         if BRAINROT:
@@ -180,7 +186,8 @@ AURA = 0
 def imprimir(*a, sep=" ", end="\n", file=None, flush=False):
     """O print de todo programa .larp: o Lapitos traduz e o 67 sempre é comemorado."""
     if LAPITOS and file is None:
-        a = [ingles(str(x)) for x in a]
+        traduz = ingles if LAPITOS == "lapitos" else portugues
+        a = [traduz(str(x)) for x in a]
     print(*a, sep=sep, end=end, file=file, flush=flush)
     if BRAINROT and file is None and any(type(x) is int and x == 67 for x in a):
         print("🤲 SIX SEVEN! 6️⃣7️⃣")
@@ -189,6 +196,19 @@ def imprimir(*a, sep=" ", end="\n", file=None, flush=False):
 def lapitos(*a):
     """lapitos("Olá mundo") imprime em inglês: Hello world."""
     print(*[ingles(str(x)) for x in a])
+
+
+def sotipal(*a):
+    """sotipal("Hello world") imprime em português: Olá mundo (é o Lapitos ao contrário)."""
+    print(*[portugues(str(x)) for x in a])
+
+
+def trippi(x):
+    """Trippi Troppi (meio camarão, meio gato) diz de que tipo é a coisa."""
+    nomes = {"int": "número inteiro", "float": "número com vírgula", "str": "texto", "_S": "texto",
+             "list": "lista", "_Lista": "lista", "dict": "dicionário", "_O": "objeto", "bool": "sigma/npc (bool)",
+             "NoneType": "ohio (nada)", "function": "função", "tuple": "tupla", "set": "conjunto"}
+    return nomes.get(type(x).__name__, type(x).__name__)
 
 
 def sixseven():
@@ -238,6 +258,63 @@ def chimpanzini(pergunta=""):
     return input(pergunta)
 
 
+# ---------- desenhar: vira um desenho (SVG) na página ----------
+DESENHO = None
+
+
+def _desenho():
+    global DESENHO
+    if DESENHO is None:
+        tela()
+    return DESENHO
+
+
+def tela(largura=400, altura=300, fundo="#15120f"):
+    """Começa um desenho novo (a página mostra no final)."""
+    global DESENHO
+    DESENHO = {"largura": largura, "altura": altura, "fundo": fundo, "itens": []}
+
+
+def _cor(c):
+    return html_esc(str(c), quote=True)
+
+
+def circulo(x, y, raio, cor="#f2b544"):
+    _desenho()["itens"].append(f'<circle cx="{x}" cy="{y}" r="{raio}" fill="{_cor(cor)}"/>')
+
+
+def retangulo(x, y, largura, altura, cor="#8c2433"):
+    _desenho()["itens"].append(f'<rect x="{x}" y="{y}" width="{largura}" height="{altura}" fill="{_cor(cor)}"/>')
+
+
+def linha(x1, y1, x2, y2, cor="#ece3d6", grossura=2):
+    _desenho()["itens"].append(f'<line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}" stroke="{_cor(cor)}" '
+                               f'stroke-width="{grossura}" stroke-linecap="round"/>')
+
+
+def rotulo(x, y, texto, cor="#ece3d6", tamanho=20):
+    """Escreve um texto no desenho."""
+    _desenho()["itens"].append(f'<text x="{x}" y="{y}" fill="{_cor(cor)}" font-size="{tamanho}" '
+                               f'font-family="sans-serif">{html_esc(str(texto))}</text>')
+
+
+def emoji(x, y, simbolo, tamanho=40):
+    """Põe um emoji no desenho (ótimo para chamar o elenco brainrot: 🦈 🐊 🪵)."""
+    _desenho()["itens"].append(f'<text x="{x}" y="{y}" font-size="{tamanho}" text-anchor="middle" '
+                               f'dominant-baseline="middle">{html_esc(str(simbolo))}</text>')
+
+
+def desenho_svg():
+    """O desenho pronto, como HTML (vazio se o programa não desenhou nada)."""
+    if not DESENHO:
+        return ""
+    d = DESENHO
+    return (f'<svg xmlns="http://www.w3.org/2000/svg" width="{d["largura"]}" height="{d["altura"]}" '
+            f'viewBox="0 0 {d["largura"]} {d["altura"]}" style="display:block;margin:16px auto;max-width:100%;'
+            f'height:auto;border-radius:8px"><rect width="100%" height="100%" fill="{_cor(d["fundo"])}"/>'
+            + "".join(d["itens"]) + "</svg>")
+
+
 # ---------- funções emprestadas de outras linguagens ----------
 def printf(fmt, *a):
     fmt = str(fmt).replace("%v", "%s")
@@ -276,8 +353,8 @@ class _Object:
 
 def criar_namespace():
     """Tudo que o código .larp pode usar sem importar (Math, parseInt, input, ...)."""
-    global AURA, LAPITOS
-    AURA, LAPITOS = 0, False                     # cada programa começa do zero
+    global AURA, LAPITOS, DESENHO
+    AURA, LAPITOS, DESENHO = 0, False, None      # cada programa começa do zero
     Math = types.SimpleNamespace(
         floor=math.floor, ceil=math.ceil, sqrt=math.sqrt, pow=pow, max=max, min=min,
         abs=abs, round=round, random=random.random, trunc=math.trunc, log=math.log,
@@ -286,7 +363,9 @@ def criar_namespace():
         "_S": _S, "_O": _O, "_bf": bf, "_ballerina": ballerina, "_tralala": tralala,
         "_bombardiro": bombardiro, "_entrar": entrar, "_printf": printf, "_sprintf": sprintf,
         "_println": println, "_rustfmt": rustfmt,
-        "print": imprimir, "lapitos": lapitos, "sixseven": sixseven, "skibidi": skibidi, "fanum": fanum,
+        "tela": tela, "circulo": circulo, "retangulo": retangulo, "linha": linha, "rotulo": rotulo,
+        "emoji": emoji,
+        "print": imprimir, "lapitos": lapitos, "sotipal": sotipal, "trippi": trippi, "sixseven": sixseven, "skibidi": skibidi, "fanum": fanum,
         "verity": verity, "rizz": rizz, "farmar_aura": farmar_aura, "aura": aura, "chimpanzini": chimpanzini,
         "Math": Math, "parseInt": lambda x, base=10: int(x, base), "parseFloat": float,
         "String": str, "Number": num, "Boolean": bool,
